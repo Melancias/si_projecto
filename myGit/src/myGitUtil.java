@@ -7,11 +7,12 @@ import java.net.Socket;
 public class myGitUtil {
 
     private Socket socket;
+    private String user;
     private ObjectOutputStream outStream;
     private ObjectInputStream inStream;
 
 
-    public myGitUtil(String host,int port) throws IOException {
+    public myGitUtil(String host,int port,String user) throws IOException {
         socket = new Socket(host, port);
         //noinspection Since15
         outStream = new ObjectOutputStream(socket.getOutputStream());
@@ -29,7 +30,6 @@ public class myGitUtil {
             System.err.println("Ficheiro alterado em tempo de execução, abortar operação");
             System.exit(-1);
         }
-
         long    fileLength  = file.length();
         int     sendLength  = 1024;
         int     offset      = 0;
@@ -74,8 +74,16 @@ public class myGitUtil {
         return new Boolean(false);
     }
 
-    public static DataManifest scandir(){
-        return null;
+    public void sendManifest(String repo,String action) throws Exception {
+        DataManifest d= new DataManifest(user,repo,action);
+        if(new File("./"+repo).isFile()){
+            d.addFileManifestManual(repo);
+        }
+        else{
+            d.autoGenerateManifest("./"+repo);
+        }
+
+        outStream.writeObject(d);
     }
 
 }
