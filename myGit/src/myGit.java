@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -12,6 +13,7 @@ public class myGit {
         String pwd="d";
         myGitUtil util= new myGitUtil("localhost",23456,user);
         util.auth(user,pwd);
+
         if (argumento.equals("-pull")) {
             System.out.println("Pull");
             util.sendManifest("testrepo","pull");
