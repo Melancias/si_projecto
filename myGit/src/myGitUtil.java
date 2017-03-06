@@ -18,7 +18,6 @@ public class myGitUtil {
          inStream = new ObjectInputStream(socket.getInputStream());
     }
 
-
     public void pushFile(String path) throws IOException {
         //noinspection Since15
 
@@ -60,7 +59,6 @@ public class myGitUtil {
         outStream.close();
         inStream.close();
         socket.close();
-
     }
 
     public Boolean auth(String user, String pwd) throws IOException {
@@ -75,6 +73,7 @@ public class myGitUtil {
         }
         return new Boolean(false);
     }
+
 
 }
 
