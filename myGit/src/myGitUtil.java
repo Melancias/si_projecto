@@ -74,6 +74,9 @@ public class myGitUtil {
         return new Boolean(false);
     }
 
+    public static DataManifest scandir(){
+        return null;
+    }
 
 }
 
