@@ -12,7 +12,6 @@ public class AuthManager {
         this.authFile = new File("./.authFile");
     }
 
-
     public boolean authenticate(String username, String password){
 
         try {
@@ -22,6 +21,7 @@ public class AuthManager {
             for (String line; (line = authReader.readLine()) != null;){
                 String[] credentials = line.split("\\:");
                 if (credentials[0].equals(username) && credentials[1].equals(password)) {
+                    System.out.println("Login Sucessful");
                     return true;
                 }
             }
@@ -40,10 +40,12 @@ public class AuthManager {
     }
 
     private boolean register(String username, String password){
+        System.out.println("criando conta nova");
         try {
             FileWriter authWriter = new FileWriter(authFile, true);
             String credentials = username+":"+password;
             authWriter.append(credentials);
+            authWriter.flush();
         } catch (IOException e) {
             return false;
         }
