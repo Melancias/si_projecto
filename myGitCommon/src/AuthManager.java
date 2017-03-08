@@ -21,8 +21,12 @@ public class AuthManager {
             // Read each line until credentials match
             for (String line; (line = authReader.readLine()) != null;){
                 String[] credentials = line.split("\\:");
-                if (credentials[0].equals(username) && credentials[1].equals(password)) {
-                    return true;
+                if (credentials[0].equals(username)) {
+                    if (credentials[1].equals(password)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
             }
             // In case credentials not found, register
