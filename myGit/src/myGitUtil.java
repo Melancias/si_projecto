@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by Melancias on 24/02/2017.
@@ -84,6 +85,13 @@ public class myGitUtil {
         }
 
         outStream.writeObject(d);
+    }
+
+    public void getFileList() throws IOException, ClassNotFoundException {
+        ArrayList<String> c= (ArrayList<String>) inStream.readObject();
+        for(String s: c){
+            System.out.println(s);
+        }
     }
 
 }

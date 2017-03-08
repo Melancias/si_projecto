@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 class ServerThread extends Thread {
 
     private Socket socket = null;
-
+    private AuthManager auth= new AuthManager();
     ServerThread(Socket inSoc) {
         socket = inSoc;
         System.out.println("thread do server para cada cliente");
@@ -30,7 +31,8 @@ class ServerThread extends Thread {
             }catch (ClassNotFoundException e1) {
                 e1.printStackTrace();
             }
-            if (user.equals("b") && passwd.equals("d")){
+
+            if (auth.authenticate(user,passwd)){
                 outStream.writeObject(new Boolean(true));
                 getManifest(outStream,inStream);
             }
@@ -93,9 +95,11 @@ class ServerThread extends Thread {
     public void getManifest(ObjectOutputStream outStream,ObjectInputStream inStream ) throws IOException, ClassNotFoundException {
         DataManifest d = (DataManifest)inStream.readObject();
         System.out.println(d);
-        DataManifest.processManifest(d);
-
+        ArrayList<String> c= DataManifest.processManifest(d);
+        outStream.writeObject(c);
     }
+
+
 
 
 
