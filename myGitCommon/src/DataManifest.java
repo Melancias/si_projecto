@@ -59,10 +59,15 @@ public class DataManifest implements Serializable{
                     System.out.println("Ficheiro " + file.getName() + " modificado");
                 } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
                     System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
+                    break;
+                }
+                else{
+                    System.out.println("Ficheiro nao modificado");
                 }
             }
             return requestedFiles;
         }
+
         else if(data.action.equals("pull")){
 
             for (File file : files) {
@@ -72,6 +77,10 @@ public class DataManifest implements Serializable{
                 }
                 else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())){
                 System.out.println("Repo do servidor não actualizado, fazer push primeiro");
+                break;
+                }
+                else {
+                    System.out.println("Versao do cliente actualizada");
                 }
             }
             System.out.println(requestedFiles);
