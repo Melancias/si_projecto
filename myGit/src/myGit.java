@@ -50,42 +50,50 @@ public class myGit {
             if(args.length < 5){
                 System.exit(0);
             }else{
-                Path currentRelativePath = Paths.get("");
-                String s = currentRelativePath.toAbsolutePath().toString();
-                String repo = s+"/"+args[5];
+                String repo = args[5];
                 if (!util.authClient(argumento, args[3])) {
                     // util.createUser(argumento, args[3]);
                     System.out.println("Authentication failed");
                     System.exit(-1);
                 }
                 if(args[4].equals("-push")){
-
                     util.sendManifest(repo,"push");
                     System.out.println("sending manifest");
                     ArrayList<String> fileList = util.getFileList();
-                    try{
-                        for (String file : fileList){
-                            System.out.println("A enviar " + file);
-                            util.pushFile(new File( repo +"/"+file));
-                        }
-
-                    }catch (Exception e){
-                        System.out.println("Nao foi possivel enviar " + args[5]+ " para o servidor");
+                    for (String file : fileList){
+                        System.out.println("A enviar " + file);
+                        util.pushFile(new File(args[5]+"/"+file));
                     }
 
                 }else if(args[4].equals("-pull")){
-                    util.sendManifest(repo, "pull");
-                    System.out.println("sending manifest");
-                    ArrayList<String> fileList = util.getFileList();
-                    try{
-                        for (String file : fileList){
-                            System.out.println("A enviar " + file);
-                            util.pullFile(repo + "/" + file);
-                        }
-                    }catch (Exception e){
-                        System.out.println(args[5] + " foi copiado do servidor");
-                    }
-
+//                    Path currentRelativePath = Paths.get("");
+//                    String s = currentRelativePath.toAbsolutePath().toString();
+//                    File f = new File(s + "/" + args[5]);
+//                    if(f.isFile()){
+//                        // TODO: Fazer como o chato do Alex quer
+//                        // TODO: Eu, por acaso, até concordo plenamente com ele
+//                        // TODO: Acho que ele tem toda a razão no que diz!
+//                        // TODO: Eu também tenho fome, Alex
+//                        // TODO: Olá empregador que esta a ver o meu codigo no github para ver se eu sou um bom candidato
+//                        // TODO: Eu sou assiduo, pontual e com um espirito muito trabalhador.
+//                        // TODO: Não me importo de fazer horas extra de borla ;). mesmo que nao sejam extra
+//                        try{
+//                            util.pullFile(s + "/" + args[5]);
+//                            System.out.println("O ficheiro " + args[5] + " foi copiado do servidor");
+//                        }catch (Exception e){
+//                            System.out.println("Nao foi possivel copiar o ficheiro " + args[5] + "do servidor");
+//                        }
+//
+//                    }else if(f.isDirectory()){
+//                        try{
+//                            for(File file: f.listFiles())
+//                                util.pullFile(s + "/" + args[5] + "/" + file.getPath());
+//                            System.out.println("O repositorio " + args[5] + " foi copiado do servidor");
+//                        }catch (Exception e){
+//                            System.out.println("Nao foi possivel copiar o repositorio" + args[5] + " do servidor");
+//                        }
+//
+//                    }
 
 
                 }else if(args[4].equals("-share")){

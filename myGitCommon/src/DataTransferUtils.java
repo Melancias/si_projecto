@@ -106,7 +106,7 @@ public class DataTransferUtils {
         fileOut.flush();
         fileOut.close();
         file.setLastModified(lastModified);
-
+        //TODO: configurar versoes(Ex: ficheiro.test.1, ficheiro.test.2)
 
     }
 
@@ -140,7 +140,6 @@ public class DataTransferUtils {
 
     public void sendManifest(String repo, String action) throws Exception {
         DataManifest d= new DataManifest(user,repo,action);
-        repo="./"+repo;
         if(new File(repo).isFile()){
             d.addFileManifestManual(repo);
         }

@@ -26,7 +26,7 @@ public class DataManifest implements Serializable{
 
     public void autoGenerateManifest(String path) throws Exception {
 
-        File[] files = new File(path).listFiles();
+        File[] files = new File("./"+path).listFiles();
 
         for (File file : files) {
             if (file.isFile()) {
@@ -43,19 +43,27 @@ public class DataManifest implements Serializable{
 
     public static ArrayList<String> processManifest(DataManifest data){
         ArrayList<String> requestedFiles = new ArrayList<String>();
-        File[] files = new File("./" + data.repo).listFiles();
+        String repo = null;
+        if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
+        else{repo=data.repo;}
+        File[] files = new File("./" + repo).listFiles();
         if(files==null){
-            files = new File[]{new File("./" + data.repo)};
+            files = new File[]{new File("./" + repo)};
             if(files[0]==null){
-                requestedFiles.add(data.repo);
+                requestedFiles.add(repo);
                 return requestedFiles;
             }
         }
+
+
         for(String s:data.dataManifest.keySet()){
-            if(!new File(data.repo+"/"+s).exists()){
+            if(!new File(repo+"/"+s).exists()){
                 requestedFiles.add(s);
             }
         }
+
+
+
         if(data.action.equals("push")) {
             for (File file : files) {
                 if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
@@ -65,11 +73,18 @@ public class DataManifest implements Serializable{
                     System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
                     break;
                 }
-                else{
-                    System.out.println("Ficheiro nao modificado");
+                else if(file.exists() & !data.dataManifest.containsKey(file.getName())){
+                    if(new File(file.getName()+".2").exists()){
+                        new File(file.getName()+".2").delete();
+                        new File(file.getName()+".1").renameTo(new File(file.getName()+".2"));
+                        file.renameTo(new File(file.getName()+".1"));
+                    }
+                    else{file.renameTo(new File(file.getName()+".1"));}
                 }
+                else{System.out.println("Ficheiro nao modificado");}
             }
             return requestedFiles;
+
         }
 
         else if(data.action.equals("pull")){
