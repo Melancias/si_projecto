@@ -62,7 +62,9 @@ public class myGit {
                     ArrayList<String> fileList = util.getFileList();
                     for (String file : fileList){
                         System.out.println("A enviar " + file);
-                        util.pushFile(new File(args[5]+"/"+file));
+                        String path=null;
+                        File test=new File("./"+args[5]+"/"+file);
+                        util.pushFile(test);
                     }
 
                 }else if(args[4].equals("-pull")){
@@ -94,6 +96,14 @@ public class myGit {
 //                        }
 //
 //                    }
+
+                    util.sendManifest(repo,"pull");
+                    System.out.println("sending manifest");
+                    ArrayList<String> fileList = util.getFileList();
+                    for (String file : fileList){
+                        System.out.println("A enviar " + file);
+                        util.pullFile(new File(args[5]+"/"+file));
+                    }
 
 
                 }else if(args[4].equals("-share")){
