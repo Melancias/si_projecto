@@ -13,6 +13,7 @@ public class myGit {
         String argumento =args[0];
         if(argumento.equals("-init")){
             try{
+
                 Path currentRelativePath = Paths.get("");
                 String s = currentRelativePath.toAbsolutePath().toString();
                 System.out.println(s);
