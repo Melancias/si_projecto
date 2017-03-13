@@ -15,6 +15,7 @@ public class DataTransferUtils {
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
         socket = new Socket(host, port);
+        this.user=user;
         //noinspection Since15
         outStream = new ObjectOutputStream(socket.getOutputStream());
         inStream = new ObjectInputStream(socket.getInputStream());
@@ -39,11 +40,12 @@ public class DataTransferUtils {
         long    fileLength  = file.length();
         int     sendLength  = 1024;
         int     offset      = 0;
-
+        long lastModified=file.lastModified();
         byte[] buffer = new byte[1024];
 
         // Send file length
-        outStream.writeLong(fileLength);
+        outStream.writeObject(fileLength);
+        outStream.writeObject(lastModified);
 
         while(offset < fileLength){
 
@@ -68,16 +70,16 @@ public class DataTransferUtils {
         return false;
     }
 
-    public void pullFile(File file) throws IOException {
+    public void pullFile(File file) throws IOException, ClassNotFoundException {
 
         int bytes;
-
         int received = 0;
         int chunkSize = 1024;
         byte[] buffer = new byte[1024];
 
         // Receive file length
-        long fileLength = inStream.readLong();
+        long fileLength = (Long) inStream.readObject();
+        long lastModified = (Long) inStream.readObject();
 
         FileOutputStream fileOut = new FileOutputStream(file);
 
@@ -100,14 +102,19 @@ public class DataTransferUtils {
         System.out.println("Finished - Sent: " + fileLength);
 
         // Close File Input Stream
+
         fileOut.flush();
         fileOut.close();
+        file.setLastModified(lastModified);
+
+
     }
 
     public Boolean authClient(String user, String pwd) throws IOException {
         try {
             outStream.writeObject(user);
             outStream.writeObject(pwd);
+            outStream.flush();
             return (Boolean) inStream.readObject();
         } catch (Exception e) {
             System.err.println("LOL NAO");
@@ -133,13 +140,15 @@ public class DataTransferUtils {
 
     public void sendManifest(String repo, String action) throws Exception {
         DataManifest d= new DataManifest(user,repo,action);
-        if(new File("./"+repo).isFile()){
+        repo="./"+repo;
+        if(new File(repo).isFile()){
             d.addFileManifestManual(repo);
         }
         else{
-            d.autoGenerateManifest("./"+repo);
+            d.autoGenerateManifest(repo);
         }
         outStream.writeObject(d);
+        outStream.flush();
     }
 
     public ArrayList<String> getFileList() throws IOException, ClassNotFoundException {
@@ -152,6 +161,7 @@ public class DataTransferUtils {
 
     public void sendRequestList(ArrayList<String> test) throws IOException {
         outStream.writeObject(test);
+        outStream.flush();
     }
 
     public DataManifest getManifest() throws IOException, ClassNotFoundException {
@@ -162,6 +172,7 @@ public class DataTransferUtils {
 
     public void sendHandshake() throws IOException {
         outStream.writeObject(new Boolean(true));
+        outStream.flush();
     }
 
     public void share(String share, String argumento, String arg, String arg1) {
@@ -172,6 +183,7 @@ public class DataTransferUtils {
     }
 
     public void sendCloseHandshake() throws IOException {
-        outStream.writeBoolean(false);
+        outStream.writeObject(new Boolean(false));
+        outStream.flush();
     }
 }

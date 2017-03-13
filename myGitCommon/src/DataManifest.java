@@ -51,7 +51,11 @@ public class DataManifest implements Serializable{
                 return requestedFiles;
             }
         }
-
+        for(String s:data.dataManifest.keySet()){
+            if(!new File(data.repo+"/"+s).exists()){
+                requestedFiles.add(s);
+            }
+        }
         if(data.action.equals("push")) {
             for (File file : files) {
                 if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {

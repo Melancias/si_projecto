@@ -35,7 +35,6 @@ class ServerThread extends Thread {
                 if (manifest.action.equals("push")){
                     for(String s : c){
                         System.out.println("A receber ficheiros LOLOLOL");
-                        util.sendHandshake();
                         util.pullFile(new File(manifest.repo+"/"+s));
                     }
                 }
