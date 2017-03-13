@@ -102,6 +102,7 @@ public class myGit {
 
                 }else if(args[4].equals("-share")){
                     try{
+
                         util.share("share", argumento, args[5], args[6]);
                     }catch (Exception e){
                         System.out.println("Ocorreu um erro");
