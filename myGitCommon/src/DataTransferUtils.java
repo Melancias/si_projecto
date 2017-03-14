@@ -31,6 +31,7 @@ public class DataTransferUtils {
     public boolean pushFile(File file) throws IOException {
 
         FileInputStream fileInput = null;
+
         try {
             fileInput = new FileInputStream(file);
         } catch (FileNotFoundException e) {
@@ -65,7 +66,6 @@ public class DataTransferUtils {
 //        outStream.close();
 //        inStream.close();
 //        socket.close();
-
         
         return false;
     }

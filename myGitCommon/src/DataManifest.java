@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,8 +63,6 @@ public class DataManifest implements Serializable{
             }
         }
 
-
-
         if(data.action.equals("push")) {
             for (File file : files) {
                 if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
@@ -73,15 +72,14 @@ public class DataManifest implements Serializable{
                     System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
                     break;
                 }
-                else if(file.exists() & !data.dataManifest.containsKey(file.getName())){
-                    if(new File(file.getName()+".2").exists()){
-                        new File(file.getName()+".2").delete();
-                        new File(file.getName()+".1").renameTo(new File(file.getName()+".2"));
-                        file.renameTo(new File(file.getName()+".1"));
+                else if (file.exists() & !data.dataManifest.containsKey(file.getName())){
+                    try {
+                        RepoManager.manageVersions(file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    else{file.renameTo(new File(file.getName()+".1"));}
                 }
-                else{System.out.println("Ficheiro nao modificado");}
+                else{ System.out.println("Ficheiro nao modificado"); }
             }
             return requestedFiles;
 
