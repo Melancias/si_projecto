@@ -70,7 +70,7 @@ public class DataTransferUtils {
         return false;
     }
 
-    public void pullFile(String path, String user) throws IOException, ClassNotFoundException {
+    public void pullFile(String path) throws IOException, ClassNotFoundException {
 
         File file = new File(path);
         int bytes;
@@ -81,54 +81,34 @@ public class DataTransferUtils {
         // Receive file length
         long fileLength = (Long) inStream.readObject();
         long lastModified = (Long) inStream.readObject();
-        if(user=="cliente"){
-            FileOutputStream fileOut = new FileOutputStream(file, false);
 
-            while(received < fileLength){
-                // If about to receive more than what's left
-                if( (received + chunkSize) > fileLength ){
-                    // Set incoming bytes to what's left
-                    chunkSize = (int)fileLength - received;
-                }
+        FileOutputStream fileOut = new FileOutputStream(file);
 
-                // Read bytes to buffer
-                bytes = inStream.read(buffer, 0, chunkSize);
-
-                // Write from buffer to File System
-                fileOut.write(buffer, 0, bytes);
-
-                received += bytes;
-            }
-        }else if(user=="servidor") {
-            FileOutputStream fileOut = new FileOutputStream(file);
-
-            while (received < fileLength) {
-                // If about to receive more than what's left
-                if ((received + chunkSize) > fileLength) {
-                    // Set incoming bytes to what's left
-                    chunkSize = (int) fileLength - received;
-                }
-
-                // Read bytes to buffer
-                bytes = inStream.read(buffer, 0, chunkSize);
-
-                // Write from buffer to File System
-                fileOut.write(buffer, 0, bytes);
-
-                received += bytes;
+        while(received < fileLength){
+            // If about to receive more than what's left
+            if( (received + chunkSize) > fileLength ){
+                // Set incoming bytes to what's left
+                chunkSize = (int)fileLength - received;
             }
 
+            // Read bytes to buffer
+            bytes = inStream.read(buffer, 0, chunkSize);
 
-            System.out.println("Finished - Sent: " + fileLength);
+            // Write from buffer to File System
+            fileOut.write(buffer, 0, bytes);
 
-            // Close File Input Stream
-
-            fileOut.flush();
-            fileOut.close();
-            file.setLastModified(lastModified);
-
-
+            received += bytes;
         }
+
+        System.out.println("Finished - Sent: " + fileLength);
+
+        // Close File Input Stream
+
+        fileOut.flush();
+        fileOut.close();
+        file.setLastModified(lastModified);
+
+
     }
 
     public Boolean authClient(String user, String pwd) throws IOException {
