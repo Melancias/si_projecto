@@ -17,7 +17,7 @@ public class myGit {
                 Path currentRelativePath = Paths.get("");
                 String s = currentRelativePath.toAbsolutePath().toString();
                 System.out.println(s);
-                File f = new File(s + "/"+ args[1]);
+                File f = new File(s + "/repositories/"+ args[1]);
                 if(f.isDirectory()) {
                     if (!f.exists()) {
                         f.mkdir();
@@ -52,7 +52,7 @@ public class myGit {
             }else{
                 Path currentRelativePath = Paths.get("");
                 String s = currentRelativePath.toAbsolutePath().toString();
-                String repo = s + "/" + args[5];
+                String repo = s + "/repositories/" + args[5];
                 if (!util.authClient(argumento, args[3])) {
                     // util.createUser(argumento, args[3]);
                     System.out.println("Authentication failed");
@@ -79,7 +79,7 @@ public class myGit {
                     try {
                         for (String file : fileList) {
                             System.out.println("A enviar " + file);
-                            util.pullFile(repo + "/" + file);
+                            util.pullFile(repo + "/" + file, "cliente");
                         }
                     }catch (Exception e){
                         System.out.println("Nao foi posssivel copiar " + args[5] + "do servidor");
