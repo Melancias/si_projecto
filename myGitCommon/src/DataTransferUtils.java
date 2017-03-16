@@ -167,9 +167,13 @@ public class DataTransferUtils {
         if(new File(repo).isFile()){
             d.addFileManifestManual(repo);
         }
-        else{
+        else if (new File(repo).isDirectory() ){
             d.autoGenerateManifest(repo);
         }
+        else{
+             outStream.writeObject("ignore");
+            System.out.println("Directorio ou ficheiro nao existente");
+            }
         outStream.writeObject(d);
         outStream.flush();
     }

@@ -1,0 +1,5 @@
+grant codeBase "file:myGit.jar"{
+	permission java.net.SocketPermission "*:1024-", "connect,resolve";
+	permission java.util.PropertyPermission "user.dir", "read";
+	permission java.io.FilePermission "${user.dir}/-", "read, write";
+};

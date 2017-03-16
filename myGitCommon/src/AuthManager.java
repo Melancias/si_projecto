@@ -34,7 +34,7 @@ public class AuthManager {
 
         } catch (FileNotFoundException e) {
             createAuthFile();
-            register(username, password);
+            return register(username, password);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,6 +48,7 @@ public class AuthManager {
             FileWriter authWriter = new FileWriter(authFile, true);
             String credentials = username+":"+password;
             authWriter.append(credentials);
+            authWriter.flush();
         } catch (IOException e) {
             return false;
         }
@@ -57,6 +58,7 @@ public class AuthManager {
     private boolean createAuthFile(){
         try {
             return authFile.createNewFile();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

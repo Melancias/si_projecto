@@ -47,6 +47,7 @@ public class RepoManager {
         return true;
     }
 
+
      static boolean createShareFile(String repoPath){
         File shareFile = new File(repoPath + "/.shared");
 

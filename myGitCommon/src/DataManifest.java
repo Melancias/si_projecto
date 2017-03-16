@@ -51,10 +51,13 @@ public class DataManifest implements Serializable{
         //pegamos no path mandado pelo manifesto e adaptamos para o servidor(caso user+repo)
         if(new File("./"+data.repo.split("/")[0]).isDirectory()){repo=data.repo;}
         else if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
-        else{repo=data.user+data.repo;}
+        else{repo=data.user+ "/"+data.repo;}
         data.repo=repo;
-        //TODO: Criar pasta no server
-
+        File dirTest= new File(repo);
+        if(!dirTest.exists()){
+            System.out.println("Primeiro push, a criar repositorio");
+            RepoManager.createRepo(repo,data.user);
+        }
         //Adaptação do codigo para apenas um ficheiro
         File[] files = filterHistory("./" + repo);
         if(files==null){
@@ -64,7 +67,6 @@ public class DataManifest implements Serializable{
                 return requestedFiles;
             }
         }
-
 
         if(data.action.equals("push")) {
             for(String s:data.dataManifest.keySet()){
@@ -83,6 +85,7 @@ public class DataManifest implements Serializable{
                 }
                 else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
                     requestedFiles.add(file.getName());
+                    RepoManager.manageVersions(file);
                     System.out.println("Ficheiro " + file.getName() + " modificado");
                 } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
                     System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
@@ -124,7 +127,7 @@ public class DataManifest implements Serializable{
             public boolean accept(File pathname) {
                 String tempName= pathname.getName();
                 try{
-                    if(tempName.matches(".*\\.[1-2]$")){
+                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*")){
                         return false;}
                     else
                     {
