@@ -107,16 +107,23 @@ public class RepoManager {
         BufferedReader readerBuffer = new BufferedReader(new FileReader(file));
         BufferedWriter writerBuffer = new BufferedWriter(new FileWriter(tempFile));
 
-        // Writes every line except the one to be removed
+        writerBuffer.write(readerBuffer.readLine() + System.getProperty("line.separator"));
         String line;
+        // Writes every line except the one to be removed
         while ((line = readerBuffer.readLine()) != null) {
-            if (line.equals(username)) continue;
-            writerBuffer.write(line + System.getProperty("line.separator"));
+            System.out.println(line);
+            if (!line.equals(username)) {
+                writerBuffer.write(line + System.getProperty("line.separator"));
+            }
         }
 
         // Replace tempFile with original file
         tempFile.renameTo(file);
         writerBuffer.close();
         readerBuffer.close();
+    }
+
+    public static void main(String[] args) throws IOException {
+         removeAccessToUser("./", "Tu");
     }
 }
