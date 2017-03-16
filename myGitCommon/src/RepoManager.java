@@ -55,6 +55,7 @@ public class RepoManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return false;
      }
 
@@ -83,6 +84,19 @@ public class RepoManager {
          } else {
              file.renameTo(new File(file.getAbsolutePath()+".1"));
          }
+     }
+
+     static void createUserRepo(String username){
+         String path = "./"+username;
+         File dir    =  new File(path);
+         dir.mkdir();
+         createShareFile(path);
+         shareWith(path, username);
+     }
+
+     public static void main(String[] args){
+
+         createUserRepo("Pedro");
      }
 
 }
