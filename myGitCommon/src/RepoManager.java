@@ -86,17 +86,29 @@ public class RepoManager {
          }
      }
 
-     static void createUserRepo(String username){
+     static void createUserFolder(String repo, String username){
          String path = "./"+username;
          File dir    =  new File(path);
          dir.mkdir();
-         createShareFile(path);
-         shareWith(path, username);
      }
+
+     static void createRepo(String repo, String username){
+         File dir    =  new File(repo);
+         dir.mkdirs();
+
+         createShareFile(repo);
+         shareWith(repo, username);
+     }
+
+    static void removeAccessToUser(String path, String username) throws FileNotFoundException {
+        File repo = new File(path+"/.shared");
+
+        BufferedReader reader = new BufferedReader(new FileReader(repo));
+
+    }
 
      public static void main(String[] args){
 
-         createUserRepo("Pedro");
      }
 
 }
