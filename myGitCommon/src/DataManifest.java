@@ -1,11 +1,14 @@
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 /**
  * Created by Melancias on 03/03/2017.
  */
+
 public class DataManifest implements Serializable{
 
     private HashMap<String,Long> dataManifest = new HashMap<String,Long>();
@@ -42,12 +45,18 @@ public class DataManifest implements Serializable{
 
     public Long getModifiedData(String file){return dataManifest.get(file);}
 
-    public static ArrayList<String> processManifest(DataManifest data){
+    public static ArrayList<String> processManifest(DataManifest data) throws IOException {
         ArrayList<String> requestedFiles = new ArrayList<String>();
         String repo = null;
-        if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
-        else{repo=data.repo;}
-        File[] files = new File("./" + repo).listFiles();
+        //pegamos no path mandado pelo manifesto e adaptamos para o servidor(caso user+repo)
+        if(new File("./"+data.repo.split("/")[0]).isDirectory()){repo=data.repo;}
+        else if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
+        else{repo=data.user+data.repo;}
+        data.repo=repo;
+        //TODO: Criar pasta no server
+
+        //Adaptação do codigo para apenas um ficheiro
+        File[] files = filterHistory("./" + repo);
         if(files==null){
             files = new File[]{new File("./" + repo)};
             if(files[0]==null){
@@ -57,27 +66,27 @@ public class DataManifest implements Serializable{
         }
 
 
-        for(String s:data.dataManifest.keySet()){
-            if(!new File(repo+"/"+s).exists()){
-                requestedFiles.add(s);
-            }
-        }
-
         if(data.action.equals("push")) {
-            for (File file : files) {
-                if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
-                    requestedFiles.add(file.getName());
-                    System.out.println("Ficheiro " + file.getName() + " modificado");
-                } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
-                    System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
-                    break;
+            for(String s:data.dataManifest.keySet()){
+                if(!new File("./"+repo+"/"+s).exists()){
+                    requestedFiles.add(s);
                 }
-                else if (file.exists() & !data.dataManifest.containsKey(file.getName())){
+            }
+
+            for (File file : files) {
+                if (file.exists() & !data.dataManifest.containsKey(file.getName())){
                     try {
                         RepoManager.manageVersions(file);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
+                else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
+                    requestedFiles.add(file.getName());
+                    System.out.println("Ficheiro " + file.getName() + " modificado");
+                } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
+                    System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
+                    break;
                 }
                 else{ System.out.println("Ficheiro nao modificado"); }
             }
@@ -104,6 +113,30 @@ public class DataManifest implements Serializable{
             return requestedFiles;
         }
         return null;
+    }
+
+
+
+    public static File[] filterHistory(String pathname){
+
+        File[] files = new File(pathname).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                String tempName= pathname.getName();
+                try{
+                    if(tempName.matches(".*\\.[1-2]$")){
+                        return false;}
+                    else
+                    {
+                        return true;
+                    }
+                }
+                catch(Exception e) {
+                    return true;
+                }
+            }});
+
+        return files;
     }
 
 }

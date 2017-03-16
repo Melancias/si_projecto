@@ -61,27 +61,27 @@ public class RepoManager {
      static void manageVersions(File file) throws IOException {
 
          // If .2 exists
-         if(new File(file.getName()+".2").exists()){
+         if(new File(file.getAbsolutePath()+".2").exists()){
 
              // Delete .2
-             new File(file.getName()+".2").delete();
+             new File(file.getAbsolutePath()+".2").delete();
 
              // Rename .1 to .2
-             new File(file.getName()+".1").renameTo(new File(file.getName()+".2"));
+             new File(file.getAbsolutePath()+".1").renameTo(new File(file.getAbsolutePath()+".2"));
 
              // And current version to .1
-             file.renameTo(new File(file.getName()+".1"));
+             file.renameTo(new File(file.getAbsolutePath()+".1"));
 
          // If only .1 exists
-         } else if(new File(file.getName()+".1").exists()) {
+         } else if(new File(file.getAbsolutePath()+".1").exists()) {
 
              // rename .1 to .2
-             new File(file.getName()+".1").renameTo(new File(file.getName()+".2"));
+             new File(file.getAbsolutePath()+".1").renameTo(new File(file.getAbsolutePath()+".2"));
 
              // And current version to .1
-             file.renameTo(new File(file.getName()+".1"));
+             file.renameTo(new File(file.getAbsolutePath()+".1"));
          } else {
-             file.renameTo(new File(file.getName()+".1"));
+             file.renameTo(new File(file.getAbsolutePath()+".1"));
          }
      }
 
