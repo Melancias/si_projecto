@@ -100,15 +100,23 @@ public class RepoManager {
          shareWith(repo, username);
      }
 
-    static void removeAccessToUser(String path, String username) throws FileNotFoundException {
-        File repo = new File(path+"/.shared");
+    static void removeAccessToUser(String path, String username) throws IOException {
+        File file    = new File(path+"/.shared");
+        File tempFile = new File(path+"/.temp_shared");
 
-        BufferedReader reader = new BufferedReader(new FileReader(repo));
+        BufferedReader readerBuffer = new BufferedReader(new FileReader(file));
+        BufferedWriter writerBuffer = new BufferedWriter(new FileWriter(tempFile));
 
+        // Writes every line except the one to be removed
+        String line;
+        while ((line = readerBuffer.readLine()) != null) {
+            if (line.equals(username)) continue;
+            writerBuffer.write(line + System.getProperty("line.separator"));
+        }
+
+        // Replace tempFile with original file
+        tempFile.renameTo(file);
+        writerBuffer.close();
+        readerBuffer.close();
     }
-
-     public static void main(String[] args){
-
-     }
-
 }
