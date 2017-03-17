@@ -46,74 +46,84 @@ public class DataManifest implements Serializable{
     public Long getModifiedData(String file){return dataManifest.get(file);}
 
     public static ArrayList<String> processManifest(DataManifest data) throws IOException {
-        ArrayList<String> requestedFiles = new ArrayList<String>();
-        String repo = null;
-        //pegamos no path mandado pelo manifesto e adaptamos para o servidor(caso user+repo)
-        if(new File("./"+data.repo.split("/")[0]).isDirectory()){repo=data.repo;}
-        else if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
-        else{repo=data.user+ "/"+data.repo;}
-        data.repo=repo;
-        File dirTest= new File(repo);
-        if(!dirTest.exists()){
-            System.out.println("Primeiro push, a criar repositorio");
-            RepoManager.createRepo(repo,data.user);
-        }
-        //Adaptação do codigo para apenas um ficheiro
-        File[] files = filterHistory("./" + repo);
-        if(files==null){
-            files = new File[]{new File("./" + repo)};
-            if(files[0]==null){
-                requestedFiles.add(repo);
+        if(data.action.equals("pull") || data.action.equals("push")){
+
+
+            ArrayList<String> requestedFiles = new ArrayList<String>();
+            String repo = null;
+            //pegamos no path mandado pelo manifesto e adaptamos para o servidor(caso user+repo)
+            if(new File("./"+data.repo.split("/")[0]).isDirectory()){repo=data.repo;}
+            else if(data.repo.split("/").length<2){repo=data.user + "/" +data.repo;}
+            else{repo=data.user+ "/"+data.repo;}
+            data.repo=repo;
+            File dirTest= new File(repo);
+            if(!dirTest.exists()){
+                System.out.println("Primeiro push, a criar repositorio");
+                RepoManager.createRepo(repo,data.user);
+            }
+            //Adaptação do codigo para apenas um ficheiro
+            File[] files = filterHistory("./" + repo);
+            if(files==null){
+                files = new File[]{new File("./" + repo)};
+                if(files[0]==null){
+                    requestedFiles.add(repo);
+                    return requestedFiles;
+                }
+            }
+
+            if(data.action.equals("push")) {
+                for(String s:data.dataManifest.keySet()){
+                    if(!new File("./"+repo+"/"+s).exists()){
+                        requestedFiles.add(s);
+                    }
+                }
+
+                for (File file : files) {
+                    if (file.exists() & !data.dataManifest.containsKey(file.getName())){
+                        try {
+                            RepoManager.manageVersions(file);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
+                        requestedFiles.add(file.getName());
+                        RepoManager.manageVersions(file);
+                        System.out.println("Ficheiro " + file.getName() + " modificado");
+                    } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
+                        System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
+                        break;
+                    }
+                    else{ System.out.println("Ficheiro nao modificado"); }
+                }
+                return requestedFiles;
+
+            }
+
+            else if(data.action.equals("pull")){
+
+                for (File file : files) {
+                    if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())) {
+                        requestedFiles.add(file.getName());
+                        System.out.println("Ficheiro " + file.getName() + " existe nova versao");
+                    }
+                    else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())){
+                        System.out.println("Repo do servidor não actualizado, fazer push primeiro");
+                        break;
+                    }
+                    else {
+                        System.out.println("Versao do cliente actualizada");
+                    }
+                }
+                System.out.println(requestedFiles);
                 return requestedFiles;
             }
         }
-
-        if(data.action.equals("push")) {
-            for(String s:data.dataManifest.keySet()){
-                if(!new File("./"+repo+"/"+s).exists()){
-                    requestedFiles.add(s);
-                }
-            }
-
-            for (File file : files) {
-                if (file.exists() & !data.dataManifest.containsKey(file.getName())){
-                    try {
-                        RepoManager.manageVersions(file);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())) {
-                    requestedFiles.add(file.getName());
-                    RepoManager.manageVersions(file);
-                    System.out.println("Ficheiro " + file.getName() + " modificado");
-                } else if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())){
-                    System.out.println("Repo do cliente não actualizado, fazer pull primeiro");
-                    break;
-                }
-                else{ System.out.println("Ficheiro nao modificado"); }
-            }
-            return requestedFiles;
+        else if (data.action.equals("share")){
 
         }
+        else if (data.action.equals("remove")){
 
-        else if(data.action.equals("pull")){
-
-            for (File file : files) {
-                if (file.isFile() & file.lastModified() > data.getModifiedData(file.getName())) {
-                    requestedFiles.add(file.getName());
-                    System.out.println("Ficheiro " + file.getName() + " existe nova versao");
-                }
-                else if (file.isFile() & file.lastModified() < data.getModifiedData(file.getName())){
-                System.out.println("Repo do servidor não actualizado, fazer push primeiro");
-                break;
-                }
-                else {
-                    System.out.println("Versao do cliente actualizada");
-                }
-            }
-            System.out.println(requestedFiles);
-            return requestedFiles;
         }
         return null;
     }

@@ -45,6 +45,7 @@ class ServerThread extends Thread {
 
                 }
                 else if (manifest.action.equals("remove")){
+
                 }
 
             }
