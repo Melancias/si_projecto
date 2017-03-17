@@ -38,8 +38,13 @@ class ServerThread extends Thread {
                         util.pullFile(manifest.repo+"/"+s,"servidor");
                     }
                 }
-                if (manifest.action.equals("pull")){
+                else if (manifest.action.equals("pull")){
 
+                }
+                else if (manifest.action.equals("share")){
+
+                }
+                else if (manifest.action.equals("remove")){
                 }
 
             }
