@@ -33,7 +33,6 @@ class ServerThread extends Thread {
                 try {
                     DataManifest manifest = (DataManifest) request;
 
-
                     System.out.println("done");
                     ArrayList<String> c = DataManifest.processManifest(manifest);
                     util.sendRequestList(c);
@@ -58,7 +57,6 @@ class ServerThread extends Thread {
 
                     }
                     else if (command.equals("remove")){
-
                     }
 
                 }
