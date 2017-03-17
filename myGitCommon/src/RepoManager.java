@@ -30,29 +30,32 @@ public class RepoManager {
 
      static boolean shareWith(String repoPath, String username, String owner){
 
-        File shareFile = new File(repoPath + "/.shared");
+        File shareFile = new File(owner+"/"+repoPath + "/.shared");
 
-
+        boolean answer=false;
         try {
             BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
             String client = readerBuffer.readLine();
-
             if(client.equals(owner)){
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
-                if(!isBeingShared(repoPath, username)){
+                if(!isBeingShared(owner+"/"+repoPath, username) & AuthManager.userExists(username)){
                     shareWriter.append(username + "\n");
+                    shareWriter.append(System.lineSeparator());
                     shareWriter.flush();
+                    System.out.println("Partilhado com : " + username);
+                    answer=true;
                 }
+
                 shareWriter.close();
             }
 
 
         } catch (IOException e) {
-            return false;
+
         }
-        return true;
+        return answer;
     }
 
 
@@ -60,7 +63,7 @@ public class RepoManager {
         File shareFile = new File(repoPath + "/.shared");
 
         try {
-            return shareFile.createNewFile();
+            shareFile.createNewFile();;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,20 +98,29 @@ public class RepoManager {
          }
      }
 
-     static void createUserFolder(String repo, String username){
+     static void createUserFolder(String username){
          String path = "./"+username;
          File dir    =  new File(path);
          dir.mkdir();
      }
 
-     static void createRepo(String repo, String username){
+     static void createRepo(String repo, String username) throws IOException {
          File dir    =  new File(repo);
          dir.mkdirs();
-
          createShareFile(repo);
-         shareWith(repo, username, username);
+         //criacao e adicao da conta
+         File shareFile = new File(repo + "/.shared");
+         FileWriter shareWriter = new FileWriter(shareFile, true);
+         shareWriter.append(username + "\n");
+         shareWriter.flush();
+         shareWriter.close();
+
+//         shareWith(repo, username, username);
      }
 
+     static void checkRepo(String repo){
+
+     }
     static boolean removeAccessToUser(String path, String username, String client) throws IOException {
         File file    = new File(path+"/.shared");
         File tempFile = new File(path+"/.temp_shared");

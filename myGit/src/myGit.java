@@ -47,6 +47,7 @@ public class myGit {
             }
             DataTransferUtils util = null;
             util = new DataTransferUtils(host, port, localUser);
+
             if(args.length < 5){
                 System.out.println("O utilizador "+argumento+" autorizado");
                 System.out.println("Confirmar password do utilizador " + args[0] + ": ");
@@ -75,7 +76,9 @@ public class myGit {
                     try{
                         for (String file : fileList){
                             System.out.println("A enviar " + file);
-                            util.pushFile(new File(repo+"/"+file));
+                            if(new File(repo).isFile()){util.pushFile(new File(repo));}
+                            else{util.pushFile(new File(repo+"/"+file));}
+
                         }
                     }catch (Exception e){
                         System.out.println("Nao foi possivel enviar " + args[5]);

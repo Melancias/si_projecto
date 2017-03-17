@@ -13,7 +13,8 @@ public class AuthManager {
     }
 
 
-    public boolean userExists(String username) throws IOException {
+    public static boolean userExists(String username) throws IOException {
+        File authFile = new File("./.authFile");
         BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
         // Read each line until credentials match
@@ -21,9 +22,8 @@ public class AuthManager {
         for (String line; (line = authReader.readLine()) != null;){
 
             String[] credentials = line.split("\\:");
-            if (credentials[0].equals(username)) {
+            if (credentials[0].equals(username))
                resp = true;
-            }
         }
         return resp;
     }
