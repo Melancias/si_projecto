@@ -191,10 +191,8 @@ public class DataTransferUtils {
         outStream.flush();
     }
 
-    public DataManifest getManifest() throws IOException, ClassNotFoundException {
-        DataManifest d = (DataManifest)inStream.readObject();
-        System.out.println(d);
-        return d;
+    public Object getRequest() throws IOException, ClassNotFoundException {
+        return inStream.readObject();
     }
 
     public void sendHandshake() throws IOException {

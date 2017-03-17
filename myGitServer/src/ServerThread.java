@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -25,29 +24,44 @@ class ServerThread extends Thread {
             String user = crends[0];
             String passwd = crends[1];
             System.out.println("thread: depois de receber a password e o user");
-            if (auth.authenticate(user,passwd)){
+            if (auth.authenticate(user,passwd)) {
                 util.sendHandshake();
                 System.out.println("A ir buscar manifest");
-                DataManifest manifest = util.getManifest();
-                System.out.println("done");
-                ArrayList<String> c= DataManifest.processManifest(manifest);
-                util.sendRequestList(c);
-                if (manifest.action.equals("push")){
-                    for(String s : c){
-                        System.out.println("A receber ficheiros LOLOLOL");
-                        util.pullFile(manifest.repo+"/"+s,"servidor");
+
+                Object request = util.getRequest();
+
+                try {
+                    DataManifest manifest = (DataManifest) request;
+
+
+                    System.out.println("done");
+                    ArrayList<String> c = DataManifest.processManifest(manifest);
+                    util.sendRequestList(c);
+                    if (manifest.action.equals("push")) {
+                        for (String s : c) {
+                            System.out.println("A receber ficheiros LOLOLOL");
+                            util.pullFile(manifest.repo + "/" + s, "servidor");
+                        }
+                    } else if (manifest.action.equals("pull")) {
+
                     }
-                }
-                else if (manifest.action.equals("pull")){
+
+                } catch (ClassCastException e) {
+
+                    String params = (String) request;
+
+                    String[] paramsList = params.split(":");
+
+                    String command = paramsList[0];
+
+                    if (command.equals("share")){
+
+                    }
+                    else if (command.equals("remove")){
+
+                    }
 
                 }
-                else if (manifest.action.equals("share")){
-
-                }
-                else if (manifest.action.equals("remove")){
-
-                }
-
             }
             else {
                 util.sendCloseHandshake();

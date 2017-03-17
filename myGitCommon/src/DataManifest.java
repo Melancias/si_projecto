@@ -46,8 +46,8 @@ public class DataManifest implements Serializable{
     public Long getModifiedData(String file){return dataManifest.get(file);}
 
     public static ArrayList<String> processManifest(DataManifest data) throws IOException {
-        if(data.action.equals("pull") || data.action.equals("push")){
 
+        if(data.action.equals("pull") || data.action.equals("push")){
 
             ArrayList<String> requestedFiles = new ArrayList<String>();
             String repo = null;

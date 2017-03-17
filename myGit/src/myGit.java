@@ -90,7 +90,7 @@ public class myGit {
                         System.out.println("Ocorreu um erro");
                     }
 
-                }else if(args[4].equals("remove"))
+                }else if(args[4].equals("-remove"))
                     try{
                         util.remove("remove", argumento, args[5], args[6]);
                     }catch (Exception e){
