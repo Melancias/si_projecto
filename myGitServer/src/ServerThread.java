@@ -33,6 +33,7 @@ class ServerThread extends Thread {
                 try {
                     DataManifest manifest = (DataManifest) request;
 
+
                     System.out.println("done");
                     ArrayList<String> c = DataManifest.processManifest(manifest);
                     util.sendRequestList(c);
@@ -54,9 +55,18 @@ class ServerThread extends Thread {
                     String command = paramsList[0];
 
                     if (command.equals("share")){
+                        try{
+                           if(RepoManager.shareWith(paramsList[2], paramsList[3], paramsList[1])){
+                               System.out.println("Shared feito");
+                           }
+                        }catch(Exception o){
+                            o.printStackTrace();
+                        }
+
 
                     }
                     else if (command.equals("remove")){
+
                     }
 
                 }
