@@ -54,6 +54,7 @@ class ServerThread extends Thread {
                                 util.pullFile(manifest.repo,"servidor");
                             }
                         }
+                        util.sendRequest(0);
                     } else if (manifest.action.equals("pull")) {
 
                     }
@@ -75,11 +76,26 @@ class ServerThread extends Thread {
                     if (command.equals("share")) {
                         try {
                             if (RepoManager.shareWith(paramsList[2], paramsList[3], paramsList[1])) {
+                                util.sendRequest(0);
                                 System.out.println("Shared feito");
+                            }else{
+                                util.sendRequest(-1);
                             }
                         } catch (Exception o) {
                             o.printStackTrace();
                         }
+                    }else if(command.equals("remove")){
+                        try{
+                            if(RepoManager.removeAccessToUser(paramsList[2], paramsList[3], paramsList[1])) {
+                                util.sendRequest(0);
+                                System.out.println("Remove feito");
+                            }else
+                                util.sendRequest(-1);
+
+                        }catch (Exception o){
+                            o.printStackTrace();
+                        }
+
                     }
 
 

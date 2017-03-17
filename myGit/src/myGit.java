@@ -80,6 +80,12 @@ public class myGit {
                             else{util.pushFile(new File(repo+"/"+file));}
 
                         }
+                        int r = util.receiveAnswer();
+                        if(r == 0){
+                            System.out.println(args[5] + " foi enviado para o servidor");
+                        }else{
+                            System.out.println("Ocorreu um erro a fazer push");
+                        }
                     }catch (Exception e){
                         System.out.println("Nao foi possivel enviar " + args[5]);
                     }
@@ -101,6 +107,11 @@ public class myGit {
                 }else if(args[4].equals("-share")){
                     try{
                         util.share("share", argumento, args[5], args[6]);
+                        int r = util.receiveAnswer();
+                        if(r == 0)
+                            System.out.println(args[5] + "foi partilhado com utilizador" + args[6]);
+                        else
+                            System.out.println("Ocorreu um erro a fazer share");
                     }catch (Exception e){
                         System.out.println("Ocorreu um erro");
                     }
@@ -108,6 +119,11 @@ public class myGit {
                 }else if(args[4].equals("-remove"))
                     try{
                         util.remove("remove", argumento, args[5], args[6]);
+                        int r = util.receiveAnswer();
+                        if(r == 0){
+                            System.out.println("Removed");
+                        }else
+                            System.out.println("Ocorreu um erro a fazer remove");
                     }catch (Exception e){
                         System.out.println("Ocorreu um erro");
                     }
