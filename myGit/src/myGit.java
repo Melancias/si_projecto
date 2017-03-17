@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Created by Melancias on 21/02/2017.
@@ -18,13 +19,12 @@ public class myGit {
                 String s = currentRelativePath.toAbsolutePath().toString();
                 System.out.println(s);
                 File f = new File(s + "/"+ args[1]);
-                if(f.isDirectory()) {
                     if (!f.exists()) {
                         f.mkdir();
                         System.out.println("O repositorio " + args[1] + "  foi criado localmente");
                     } else
                         System.out.println("O repositorio ja existe");
-                }
+
 
             }catch (Exception e){
                 System.out.println("Nao foi possivel criar o repositorio");
@@ -48,7 +48,19 @@ public class myGit {
             DataTransferUtils util = null;
             util = new DataTransferUtils(host, port, localUser);
             if(args.length < 5){
-                System.exit(0);
+                System.out.println("O utilizador "+argumento+" autorizado");
+                System.out.println("Confirmar password do utilizador " + args[0] + ": ");
+                Scanner s = new Scanner(System.in);
+                String pwd = s.nextLine();
+                try{
+                    if(pwd.equals(args[3])){
+                        if(util.authClient(argumento, pwd))
+                            System.out.println("O utilizador " + argumento + " foi criado");
+                    }
+                }catch(Exception e){
+                    e.getStackTrace();
+                }
+
             }else{
                 String repo = args[5];
                 if (!util.authClient(argumento, args[3])) {
