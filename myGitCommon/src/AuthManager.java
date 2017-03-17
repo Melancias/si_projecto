@@ -48,6 +48,7 @@ public class AuthManager {
             FileWriter authWriter = new FileWriter(authFile, true);
             String credentials = username+":"+password;
             authWriter.append(credentials);
+            authWriter.write(System.lineSeparator());
             authWriter.flush();
         } catch (IOException e) {
             return false;
