@@ -34,21 +34,10 @@ public class RepoManager {
 
 
         try {
-            if(shareFile.length() != 0){
-                BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
-                String client = readerBuffer.readLine();
+            BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
+            String client = readerBuffer.readLine();
 
-                if(client.equals(owner)){
-                    FileWriter shareWriter = new FileWriter(shareFile, true);
-
-                    // If already shared with user
-                    if(!isBeingShared(repoPath, username)){
-                        shareWriter.append(username + "\n");
-                        shareWriter.flush();
-                    }
-                    shareWriter.close();
-                }
-            }else{
+            if(client.equals(owner)){
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
