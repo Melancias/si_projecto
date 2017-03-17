@@ -28,19 +28,38 @@ public class RepoManager {
         return false;
     }
 
-     static boolean shareWith(String repoPath, String username){
+     static boolean shareWith(String repoPath, String username, String owner){
 
         File shareFile = new File(repoPath + "/.shared");
 
-        try {
-            FileWriter shareWriter = new FileWriter(shareFile, true);
 
-            // If already shared with user
-            if(!isBeingShared(repoPath, username)){
-                shareWriter.append(username + "\n");
-                shareWriter.flush();
+        try {
+            if(shareFile.length() != 0){
+                BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
+                String client = readerBuffer.readLine();
+
+                if(client.equals(owner)){
+                    FileWriter shareWriter = new FileWriter(shareFile, true);
+
+                    // If already shared with user
+                    if(!isBeingShared(repoPath, username)){
+                        shareWriter.append(username + "\n");
+                        shareWriter.flush();
+                    }
+                    shareWriter.close();
+                }
+            }else{
+                FileWriter shareWriter = new FileWriter(shareFile, true);
+
+                // If already shared with user
+                if(!isBeingShared(repoPath, username)){
+                    shareWriter.append(username + "\n");
+                    shareWriter.flush();
+                }
+                shareWriter.close();
             }
-            shareWriter.close();
+
+
         } catch (IOException e) {
             return false;
         }
@@ -98,7 +117,7 @@ public class RepoManager {
          dir.mkdirs();
 
          createShareFile(repo);
-         shareWith(repo, username);
+         shareWith(repo, username, username);
      }
 
     static boolean removeAccessToUser(String path, String username, String client) throws IOException {
