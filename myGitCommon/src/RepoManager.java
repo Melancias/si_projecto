@@ -122,33 +122,33 @@ public class RepoManager {
 
      }
     static boolean removeAccessToUser(String path, String username, String client) throws IOException {
-        File file    = new File(path+"/.shared");
-        File tempFile = new File(path+"/.temp_shared");
+        File file    = new File(client + "/" + path+"/.shared");
+        //File tempFile = new File(client + "/"+path+"/.temp_shared");
+        String s = "";
 
         BufferedReader readerBuffer = new BufferedReader(new FileReader(file));
-        BufferedWriter writerBuffer = new BufferedWriter(new FileWriter(tempFile));
-
         String owner = readerBuffer.readLine();
 
         if (owner.equals(client)){
-
-            // Dono
-            writerBuffer.write( owner + System.getProperty("line.separator"));
-            String line;
-
+            s += owner + ";";
+            String line = "";
             // Writes every line except the one to be removed
-            while ((line = readerBuffer.readLine()) != null) {
+            while (( line = readerBuffer.readLine()) != null) {
                 System.out.println(line);
                 if (!line.equals(username)) {
-                    writerBuffer.write(line + System.getProperty("line.separator"));
+                    s += line + ";";
                 }
             }
-
-            // Replace tempFile with original file
-            tempFile.renameTo(file);
-            writerBuffer.close();
             readerBuffer.close();
+            BufferedWriter writerBuffer = new BufferedWriter(new FileWriter(file));
 
+            System.out.println(s);
+            for (String i : s.split(";")){
+                writerBuffer.write(i);
+                writerBuffer.append(System.lineSeparator());
+
+            }
+            writerBuffer.close();
             return true;
         }   else {
             return false;
