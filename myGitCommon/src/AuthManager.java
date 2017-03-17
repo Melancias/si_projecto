@@ -13,6 +13,26 @@ public class AuthManager {
     }
 
 
+    public boolean userExists(String username, String pwd) throws IOException {
+        BufferedReader authReader = new BufferedReader(new FileReader(authFile));
+
+        // Read each line until credentials match
+        boolean resp = false;
+        for (String line; (line = authReader.readLine()) != null;){
+
+            String[] credentials = line.split("\\:");
+            if (credentials[0].equals(username)) {
+                if (credentials[1].equals(pwd)) {
+                    resp =true;
+                } else {
+                    resp = false;
+                }
+            }
+            resp = false;
+        }
+        return resp;
+    }
+
     public boolean authenticate(String username, String password){
 
         try {
