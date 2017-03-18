@@ -130,7 +130,6 @@ public class DataTransferUtils {
 
         }
 
-
     }
 
     public Boolean authClient(String user, String pwd) throws IOException {
@@ -161,22 +160,39 @@ public class DataTransferUtils {
     };
 
 
-    public void sendManifest(String repo, String action) throws Exception {
-        DataManifest d= new DataManifest(user,repo,action);
-        repo="./"+repo;
-        if(new File(repo).isFile()){
-            d.addFileManifestManual(repo);
-        }
-        else if (new File(repo).isDirectory() ){
-            d.autoGenerateManifest(repo);
-        }
-        else{
-             outStream.writeObject("ignore");
-            System.out.println("Directorio ou ficheiro nao existente");
+    public DataManifest sendManifest(String user, String repo, String action) throws Exception {
+        if (action.equals("push") || action.equals("pull/server")) {
+            DataManifest d = new DataManifest(user, repo, action);
+            repo = "./" + repo;
+            if (new File(repo).isFile()) {
+                d.addFileManifestManual(repo);
+            } else if (new File(repo).isDirectory()) {
+                d.autoGenerateManifest(repo);
             }
-        outStream.writeObject(d);
-        outStream.flush();
+            else if (new File(user+"/"+repo).isFile()){
+                d.addFileManifestManual(user+"/"+repo);
+            }
+            else if(new File(user+"/"+repo).isDirectory()) {
+                d.autoGenerateManifest(user+"/"+repo);
+            }
+            else{
+                outStream.writeObject("ignore");
+                System.out.println("Directorio ou ficheiro nao existente");
+            }
+
+            outStream.writeObject(d);
+            outStream.flush();
+            return d;
+        }
+        else if (action=="pull"){
+            DataManifest d = new DataManifest(user, repo, action);
+            outStream.writeObject(d);
+            outStream.flush();
+        }
+        return null;
     }
+
+
 
     public ArrayList<String> getFileList() throws IOException, ClassNotFoundException {
         ArrayList<String> c= (ArrayList<String>) inStream.readObject();
@@ -220,4 +236,15 @@ public class DataTransferUtils {
         outStream.writeObject(new Boolean(false));
         outStream.flush();
     }
+
+    public void sendRequest(int i) throws IOException {
+        outStream.writeObject(i);
+        outStream.flush();
+    }
+
+
+    public int receiveAnswer() throws IOException, ClassNotFoundException {
+        return (Integer) inStream.readObject();
+    }
+
 }

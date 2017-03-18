@@ -118,9 +118,13 @@ public class RepoManager {
 //         shareWith(repo, username, username);
      }
 
-     static void checkRepo(String repo){
-
+     static boolean checkRepo(String repo,String user){
+         File test1=new File(repo);
+         File test2=new File(user+"/"+repo);
+        return test1.exists()||test2.exists();
      }
+
+
     static boolean removeAccessToUser(String path, String username, String client) throws IOException {
         File file    = new File(client + "/" + path+"/.shared");
         //File tempFile = new File(client + "/"+path+"/.temp_shared");
