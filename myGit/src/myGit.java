@@ -124,6 +124,7 @@ public class myGit {
                             System.out.println("Ocorreu um erro a fazer pull");
                         }
                     }catch (Exception e){
+                        e.printStackTrace();
                         System.out.println("Nao foi posssivel copiar " + args[5] + "do servidor");
                     }
 

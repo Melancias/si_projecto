@@ -98,6 +98,9 @@ public class DataTransferUtils {
                 fileOut.write(buffer, 0, bytes);
 
                 received += bytes;
+                file.setLastModified(lastModified);
+                fileOut.flush();
+                fileOut.close();
             }
         }else if(userType=="servidor") {
             FileOutputStream fileOut = new FileOutputStream(file);
@@ -122,13 +125,11 @@ public class DataTransferUtils {
             System.out.println("Finished - Sent: " + fileLength);
 
             // Close File Input Stream
-
+            file.setLastModified(lastModified);
             fileOut.flush();
             fileOut.close();
-            file.setLastModified(lastModified);
-
-
         }
+
 
     }
 
