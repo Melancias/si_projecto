@@ -9,7 +9,6 @@ public class RepoManager {
     static boolean isBeingShared(String repoPath, String username){
 
         File shareFile = new File(repoPath + "/.shared");
-
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(shareFile));
 
@@ -27,6 +26,32 @@ public class RepoManager {
 
         return false;
     }
+
+    static boolean shareCheck(String repoPath, String username) throws IOException {
+        String[] structure = repoPath.split("/");
+        if (structure.length<2){return true;}
+        File shareFile = new File(structure[0]+"/"+structure[1] + "/.shared");
+        if(!shareFile.exists()){
+            shareFile= new File(username+"/"+structure[0]);
+        }
+        try {
+            BufferedReader authReader = new BufferedReader(new FileReader(shareFile));
+
+            for (String line; (line = authReader.readLine()) != null; ) {
+                if (line.equals(username)) {
+                    return true;
+                }
+            }
+        }
+        catch(Exception e)
+            {
+                System.out.println("Erro a verificar a partilha");
+                return false;
+            }
+        return false;
+    }
+
+
 
      static boolean shareWith(String repoPath, String username, String owner){
 
@@ -53,7 +78,7 @@ public class RepoManager {
 
 
         } catch (IOException e) {
-
+            System.out.println("Erro a ler .shared");
         }
         return answer;
     }

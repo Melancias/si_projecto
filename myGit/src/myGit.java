@@ -10,7 +10,7 @@ import java.util.Scanner;
  */
 
 public class myGit {
-
+    //TODO: Proteger o pull de acessos indevidos
     public static void main (String[] args) throws Exception {
         String argumento =args[0];
         if(argumento.equals("-init")){
@@ -69,6 +69,10 @@ public class myGit {
                     System.out.println("Authentication failed");
                     System.exit(-1);
                 }
+                if(!util.checkRepoAcess(repo,localUser)){
+                    System.out.println("Utilizador sem acceso ao repositorio");
+                    System.exit(-1);
+                }
                 if(args[4].equals("-push")){
                     util.sendManifest(localUser,repo,"push");
                     System.out.println("sending manifest");
@@ -117,6 +121,7 @@ public class myGit {
                             else
                                 util.pullFile(manifest.repo,"cliente");
                         }
+
                         int r = util.receiveAnswer();
                         if(r == 0){
                             System.out.println(args[5] + " foi recebido ");

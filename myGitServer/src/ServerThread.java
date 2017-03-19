@@ -27,6 +27,11 @@ class ServerThread extends Thread {
             System.out.println("thread: depois de receber a password e o user");
             if (auth.authenticate(user,passwd)){
                 util.sendHandshake();
+                if(!util.clientRepoAccessCheck()){
+                    System.out.println("Repositorio inacessivel");
+                    interrupt();
+                    this.stop();
+                }
                 System.out.println("A ir buscar manifest");
 
                 Object request = util.getRequest();
@@ -55,7 +60,7 @@ class ServerThread extends Thread {
                         }
                         util.sendRequest(0);
                     } else if (manifest.action.equals("pull")) {
-                        if (RepoManager.checkRepo(manifest.repo,manifest.user)){
+                        if (RepoManager.checkRepo(manifest.repo,manifest.user) && RepoManager.isBeingShared(manifest.repo,user)){
                             manifest=util.sendManifest(manifest.user,manifest.repo,"pull/server");
                             ArrayList<String> c=util.getFileList();
                             for (String s : c) {
@@ -78,7 +83,7 @@ class ServerThread extends Thread {
 
                         }
                         else{
-                            util.sendRequest(0);
+                            util.sendRequest(1);
                         }
 
                     }

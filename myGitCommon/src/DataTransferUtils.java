@@ -248,4 +248,18 @@ public class DataTransferUtils {
         return (Integer) inStream.readObject();
     }
 
+    public boolean clientRepoAccessCheck() throws IOException, ClassNotFoundException {
+        String repo = (String)inStream.readObject();
+        String username = (String)inStream.readObject();
+        boolean answer=RepoManager.shareCheck(repo,username);
+        outStream.writeObject(answer);
+        outStream.flush();
+        return answer;
+    }
+
+    public boolean checkRepoAcess(String repo, String localUser) throws IOException, ClassNotFoundException {
+        outStream.writeObject(repo);
+        outStream.writeObject(localUser);
+        return (Boolean) inStream.readObject();
+    }
 }
