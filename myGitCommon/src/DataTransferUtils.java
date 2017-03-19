@@ -35,7 +35,7 @@ public class DataTransferUtils {
         try {
             fileInput = new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            System.err.println("Ficheiro alterado em tempo de execução, abortar operação");
+            System.err.println("Error: File not found. Abort.");
             System.exit(-1);
         }
         long    fileLength  = file.length();
@@ -140,7 +140,7 @@ public class DataTransferUtils {
             outStream.flush();
             return (Boolean) inStream.readObject();
         } catch (Exception e) {
-            System.err.println("LOL NAO");
+            e.printStackTrace();
             System.exit(-1);
         }
         return new Boolean(false);
@@ -154,7 +154,7 @@ public class DataTransferUtils {
             String passwd = (String)inStream.readObject();
             credns=new String[]{user,passwd};
         } catch (Exception e) {
-            System.err.println("LOL NAO");
+            e.printStackTrace();
             System.exit(-1);
         }
         return credns;
@@ -178,7 +178,7 @@ public class DataTransferUtils {
             }
             else{
                 outStream.writeObject("ignore");
-                System.out.println("Directorio ou ficheiro nao existente");
+                System.out.println("Directory or File does not exist");
             }
 
             outStream.writeObject(d);

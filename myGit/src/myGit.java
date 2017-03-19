@@ -20,13 +20,13 @@ public class myGit {
                 File f = new File(s + "/"+ args[1]);
                     if (!f.exists()) {
                         f.mkdir();
-                        System.out.println("O repositorio " + args[1] + "  foi criado localmente");
-                    } else
-                        System.out.println("O repositorio ja existe");
-
+                        System.out.println(args[1] + " created locally.");
+                    } else {
+                        System.out.println(args[1]+ " already exists");
+                    }
 
             }catch (Exception e){
-                System.out.println("Nao foi possivel criar o repositorio");
+                System.out.println("Error: Could not create repository");
             }
 
         }
@@ -42,55 +42,59 @@ public class myGit {
                 localUser = args[0];
             }
             catch(Exception e){
-                System.out.println("Endereço ou porta incorrecto");
+                System.out.println("Error: Incorrect Host or Port");
+                System.exit(-1);
             }
             DataTransferUtils util = null;
             util = new DataTransferUtils(host, port, localUser);
 
             if(args.length < 5){
-                System.out.println("O utilizador "+argumento+" autorizado");
-                System.out.println("Confirmar password do utilizador " + args[0] + ": ");
+                System.out.println("Registering "+argumento);
+                System.out.println("Confirm password" + args[0] + ": ");
                 Scanner s = new Scanner(System.in);
                 String pwd = s.nextLine();
                 try{
                     if(pwd.equals(args[3])){
                         if(util.authClient(argumento, pwd))
-                            System.out.println("O utilizador " + argumento + " foi criado");
+                            System.out.println(argumento + " registered!");
+                    }
+                    else{
+                        System.out.println("Error: Passwords don't match");
+                        System.exit(-1);
                     }
                 }catch(Exception e){
                     e.getStackTrace();
-                }
+                    }
 
             }else{
                 String repo = args[5];
                 if (!util.authClient(argumento, args[3])) {
                     // util.createUser(argumento, args[3]);
-                    System.out.println("Authentication failed");
+                    System.out.println("Error: Authentication failed");
                     System.exit(-1);
                 }
                 if(!util.checkRepoAcess(repo,localUser,args[4])){
-                    System.out.println("Utilizador sem acceso ao repositorio");
+                    System.out.println("Error: You don't have access to the repository");
                     System.exit(-1);
                 }
                 if(args[4].equals("-push")){
                     util.sendManifest(localUser,repo,"push");
-                    System.out.println("sending manifest");
                     ArrayList<String> fileList = util.getFileList();
                     try{
                         for (String file : fileList){
-                            System.out.println("A enviar " + file);
+                            System.out.println("Pushing: " + file);
                             if(new File(repo).isFile()){util.pushFile(new File(repo));}
                             else{util.pushFile(new File(repo+"/"+file));}
 
                         }
                         int r = util.receiveAnswer();
                         if(r == 0){
-                            System.out.println(args[5] + " foi enviado para o servidor");
+                            System.out.println(args[5] + " pushed");
                         }else{
-                            System.out.println("Ocorreu um erro a fazer push");
+                            System.out.println("Error: Push failed");
                         }
                     }catch (Exception e){
-                        System.out.println("Nao foi possivel enviar " + args[5]);
+                        System.out.println("Error: Could not push " + args[5]);
                     }
 
 
@@ -104,17 +108,16 @@ public class myGit {
 
                     catch(Exception e){
                         if (0 == (Integer) request){
-                            System.out.println("Repo nao existe");
+                            System.out.println("Error: Repository does not exist");
                             System.exit(0);
                         }
                     }
-                    System.out.println("manifest received");
                     ArrayList<String> fileList= DataManifest.processManifest(manifest);
 
                     try {
                         util.sendRequestList(fileList);
                         for (String file : fileList) {
-                            System.out.println("A receber ficheiro: " + file);
+                            System.out.println("Pulling: " + file);
                             if(manifest.autoGenerated)
                                 util.pullFile(manifest.repo + "/" + file,"cliente");
                             else
@@ -123,13 +126,13 @@ public class myGit {
 
                         int r = util.receiveAnswer();
                         if(r == 0){
-                            System.out.println(args[5] + " foi recebido ");
+                            System.out.println("Success: " + args[5] + " received ");
                         }else{
-                            System.out.println("Ocorreu um erro a fazer pull");
+                            System.out.println("Error: Pull failed");
                         }
                     }catch (Exception e){
                         e.printStackTrace();
-                        System.out.println("Nao foi posssivel copiar " + args[5] + "do servidor");
+                        System.out.println("Error: Pull failed");
                     }
 
                 }else if(args[4].equals("-share")){
@@ -137,11 +140,12 @@ public class myGit {
                         util.share("share", argumento, args[5], args[6]);
                         int r = util.receiveAnswer();
                         if(r == 0)
-                            System.out.println(args[5] + "foi partilhado com utilizador" + args[6]);
+                            System.out.println("Success: " + args[5] + " shared with " + args[6]);
                         else
-                            System.out.println("Ocorreu um erro a fazer share");
+                            System.out.println("Error: Either " + args[6] + " already has access, is not registered, or you don't own the repository.");
                     }catch (Exception e){
-                        System.out.println("Ocorreu um erro");
+                        System.out.println("Error");
+                        e.printStackTrace();
                     }
 
                 }else if(args[4].equals("-remove"))
@@ -149,11 +153,11 @@ public class myGit {
                         util.remove("remove", argumento, args[5], args[6]);
                         int r = util.receiveAnswer();
                         if(r == 0){
-                            System.out.println("Removed");
+                            System.out.println("Success: Removed access to " + args[6]);
                         }else
-                            System.out.println("Ocorreu um erro a fazer remove");
+                            System.out.println("Error: Either " + args[6] + "has no access, does not exist, or you don't own the repository.");
                     }catch (Exception e){
-                        System.out.println("Ocorreu um erro");
+                        System.out.println("Error");
                         e.printStackTrace();
                     }
 

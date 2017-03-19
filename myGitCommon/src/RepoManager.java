@@ -62,6 +62,7 @@ public class RepoManager {
             BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
             String client = readerBuffer.readLine();
             if(client.equals(owner)){
+                System.out.println("Deu");
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
@@ -69,7 +70,7 @@ public class RepoManager {
                     shareWriter.append(username + "\n");
                     shareWriter.append(System.lineSeparator());
                     shareWriter.flush();
-                    System.out.println("Partilhado com : " + username);
+                    System.out.println(repoPath +" shared with: " + username);
                     answer=true;
                 }
 
@@ -78,7 +79,7 @@ public class RepoManager {
 
 
         } catch (IOException e) {
-            System.out.println("Erro a ler .shared");
+            System.out.println("Error: Could not read .shared");
         }
         return answer;
     }

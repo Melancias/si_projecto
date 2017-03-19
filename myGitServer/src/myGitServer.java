@@ -16,7 +16,7 @@ public class myGitServer {
     catch(Exception e){
         port=23456;
     }
-        System.out.println("servidor: main");
+        System.out.println("Server started");
         myGitServer server = new myGitServer();
         server.startServer(port);
 
