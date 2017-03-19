@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -11,7 +12,14 @@ import java.util.Scanner;
 
 public class myGit {
     public static void main (String[] args) throws Exception {
+        System.out.println("myGit Client");
+        ArrayList<String> argsVerification=new ArrayList<String>(Arrays.asList(args));
+        if( argsCheckVerification(argsVerification)) {
+            System.out.println("myGit Client couldn't parse your arguments");
+            System.exit(-1);
+        }
         String argumento =args[0];
+
         if(argumento.equals("-init")){
             try{
                 Path currentRelativePath = Paths.get("");
@@ -50,13 +58,16 @@ public class myGit {
 
             if(args.length < 5){
                 System.out.println("Registering "+argumento);
-                System.out.println("Confirm password" + args[0] + ": ");
+                System.out.println("Confirm password " + args[0] + ": ");
                 Scanner s = new Scanner(System.in);
                 String pwd = s.nextLine();
                 try{
                     if(pwd.equals(args[3])){
                         if(util.authClient(argumento, pwd))
                             System.out.println(argumento + " registered!");
+                        else{
+                            System.out.println(argumento + " register failed!");
+                        }
                     }
                     else{
                         System.out.println("Error: Passwords don't match");
@@ -160,10 +171,40 @@ public class myGit {
                         System.out.println("Error");
                         e.printStackTrace();
                     }
-
             }
         }
     }
 
+
+
+    private static boolean argsCheckVerification(ArrayList<String> argsVerification){
+        boolean answer=false;
+        if(argsVerification.size()<2){
+            answer=true;
+        }
+        if ((argsVerification.contains("-pull") || argsVerification.contains("-push") ||argsVerification.contains("-share"))|| argsVerification.contains("-remove") ){
+            if (!(argsVerification.contains("-p"))) {
+                System.out.println("Missing password");
+                answer = true;
+            }
+        }
+        if ((argsVerification.contains("-pull") || argsVerification.contains("-push")) && argsVerification.size()<6 ) {
+            System.out.println("Incomplete arguments");
+            answer = true;
+        }
+        if (argsVerification.contains("-share")|| argsVerification.contains("-remove") && argsVerification.size()<7) {
+            System.out.println("Incomplete arguments");
+            answer = true;
+        }
+        if (argsVerification.get(1).split(":").length==1 && !argsVerification.contains("-init")){
+            System.out.println("Destination port is missing");
+            answer=true;
+        }
+        if (argsVerification.get(0).split("/").length>1  && !argsVerification.contains("-init")) {
+            System.out.println("Username cannot have backslash on it");
+            answer = true;
+        }
+        return answer;
+    }
 }
 
