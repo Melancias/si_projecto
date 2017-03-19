@@ -180,7 +180,7 @@ public class myGit {
     private static boolean argsCheckVerification(ArrayList<String> argsVerification){
         boolean answer=false;
         if(argsVerification.size()<2){
-            answer=true;
+            return true;
         }
         if ((argsVerification.contains("-pull") || argsVerification.contains("-push") ||argsVerification.contains("-share"))|| argsVerification.contains("-remove") ){
             if (!(argsVerification.contains("-p"))) {
