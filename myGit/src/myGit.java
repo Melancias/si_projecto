@@ -10,7 +10,6 @@ import java.util.Scanner;
  */
 
 public class myGit {
-    //TODO: Proteger o pull de acessos indevidos
     public static void main (String[] args) throws Exception {
         String argumento =args[0];
         if(argumento.equals("-init")){
@@ -69,7 +68,7 @@ public class myGit {
                     System.out.println("Authentication failed");
                     System.exit(-1);
                 }
-                if(!util.checkRepoAcess(repo,localUser)){
+                if(!util.checkRepoAcess(repo,localUser,args[4])){
                     System.out.println("Utilizador sem acceso ao repositorio");
                     System.exit(-1);
                 }
@@ -155,6 +154,7 @@ public class myGit {
                             System.out.println("Ocorreu um erro a fazer remove");
                     }catch (Exception e){
                         System.out.println("Ocorreu um erro");
+                        e.printStackTrace();
                     }
 
             }

@@ -251,15 +251,21 @@ public class DataTransferUtils {
     public boolean clientRepoAccessCheck() throws IOException, ClassNotFoundException {
         String repo = (String)inStream.readObject();
         String username = (String)inStream.readObject();
-        boolean answer=RepoManager.shareCheck(repo,username);
+        String action = (String)inStream.readObject();
+        boolean answer;
+        if(!action.equals("-pull")||!action.equals("-push")) {
+            answer = RepoManager.shareCheck(repo, username);
+        }
+        else{answer=true;}
         outStream.writeObject(answer);
         outStream.flush();
         return answer;
     }
 
-    public boolean checkRepoAcess(String repo, String localUser) throws IOException, ClassNotFoundException {
+    public boolean checkRepoAcess(String repo, String localUser,String action) throws IOException, ClassNotFoundException {
         outStream.writeObject(repo);
         outStream.writeObject(localUser);
+        outStream.writeObject(action);
         return (Boolean) inStream.readObject();
     }
 }
