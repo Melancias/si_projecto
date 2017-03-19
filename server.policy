@@ -3,4 +3,4 @@ grant codeBase "file:myGitServer.jar"{
     	permission java.net.SocketPermission "*:1024-", "accept,resolve";
     	permission java.util.PropertyPermission "user.dir", "read";
     	permission java.io.FilePermission "${user.dir}/-", "read,write";
-};
+}; 
