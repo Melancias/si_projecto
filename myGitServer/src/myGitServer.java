@@ -12,9 +12,13 @@ public class myGitServer {
     int port=23456;
     try{
         port=Integer.parseInt(args[0]);
+        if (Integer.parseInt(args[0]) <= 1024){
+            throw new Exception();
+        }
     }
     catch(Exception e){
-        port=23456;
+        System.err.println("Error: Port must be an integer above 1024");
+        System.exit(-1);
     }
         System.out.println("Server started");
         myGitServer server = new myGitServer();
@@ -43,7 +47,6 @@ public class myGitServer {
             }
 
         }
-        //sSoc.close();
     }
 
 }
