@@ -21,11 +21,13 @@ class ServerThread extends Thread {
     public void run(){
         try {
             //noinspection Since15
+            System.out.println("entrou no run");
             String[] crends=util.getCredentials();
             String user = crends[0];
             String passwd = crends[1];
             System.out.println("Connection established");
             if (auth.authenticate(user,passwd)){
+
                 util.sendHandshake();
                 if(!util.clientRepoAccessCheck()){
                     System.out.println("Access to repository denied");

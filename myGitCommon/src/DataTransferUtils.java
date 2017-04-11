@@ -16,7 +16,8 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        SocketFactory sf = SSLSocketFactory.getDefault( );
+        System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+        SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
         //noinspection Since15
@@ -252,9 +253,17 @@ public class DataTransferUtils {
     }
 
     public boolean clientRepoAccessCheck() throws IOException, ClassNotFoundException {
-        String repo = (String)inStream.readObject();
-        String username = (String)inStream.readObject();
-        String action = (String)inStream.readObject();
+        String repo = null;
+        String username = null;
+        String action = null;
+        try{
+            repo = (String)inStream.readObject();
+            username = (String)inStream.readObject();
+            action = (String)inStream.readObject();
+        }catch(Exception e){
+            System.out.println("Nao recebeu os dados");
+        }
+
         boolean answer;
         if(!action.equals("-pull")||!action.equals("-push")) {
             answer = RepoManager.shareCheck(repo, username);

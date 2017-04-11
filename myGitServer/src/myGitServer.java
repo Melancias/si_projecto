@@ -31,8 +31,8 @@ public class myGitServer {
     }
 
      public void startServer (int port){
-     System.setProperty("javax.net.ssl.keyStore", "myServer.jks");
-     System.setProperty("javax.net.ssl.keyStorePassword", "batatas");
+     System.setProperty("javax.net.ssl.keyStore", "myServer.keyStore");
+     System.setProperty("javax.net.ssl.keyStorePassword", "123456");
      ServerSocketFactory sf = SSLServerSocketFactory.getDefault( );
          ServerSocket sSoc = null;
 

@@ -20,7 +20,6 @@ import java.util.Scanner;
 public class myGit {
     public static void main (String[] args) throws Exception {
 
-        System.setProperty("javax.net.ssl.trustStore","myClient.jks");
         System.out.println("myGit Client");
         ArrayList<String> argsVerification=new ArrayList<String>(Arrays.asList(args));
         if( argsCheckVerification(argsVerification)) {
