@@ -16,13 +16,12 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        SocketFactory sf = SSLSocketFactory.getDefault();
-        socket = sf.createSocket(host, port);
-
-        this.user = user;
+        SocketFactory sf = SSLSocketFactory.getDefault( );
+        socket= sf.createSocket(host,port);
+        this.user=user;
         //noinspection Since15
         outStream = new ObjectOutputStream(socket.getOutputStream());
-        inStream  = new ObjectInputStream(socket.getInputStream());
+        inStream = new ObjectInputStream(socket.getInputStream());
     }
 
     public DataTransferUtils(Socket socket) throws IOException {
