@@ -12,10 +12,15 @@ import java.util.Scanner;
  * Created by Melancias on 21/02/2017.
  */
 
+//TODO push ou pull de ficheiro que não existe. ERRO.
+//TODO verificar se conta existe antes de registar.
+//TODO push com conta inexistente não pede verificação de password, aceita logo.
+//TODO pull com conta inexistente. ERRO.
+
 public class myGit {
     public static void main (String[] args) throws Exception {
-        System.setProperty("javax.net.ssl.trustStore","myClient.jks");
 
+        System.setProperty("javax.net.ssl.trustStore","myClient.jks");
         System.out.println("myGit Client");
         ArrayList<String> argsVerification=new ArrayList<String>(Arrays.asList(args));
         if( argsCheckVerification(argsVerification)) {
