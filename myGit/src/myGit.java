@@ -1,3 +1,5 @@
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,6 +14,8 @@ import java.util.Scanner;
 
 public class myGit {
     public static void main (String[] args) throws Exception {
+        System.setProperty("javax.net.ssl.trustStore","myClient.jks");
+
         System.out.println("myGit Client");
         ArrayList<String> argsVerification=new ArrayList<String>(Arrays.asList(args));
         if( argsCheckVerification(argsVerification)) {
@@ -192,7 +196,7 @@ public class myGit {
             System.out.println("Incomplete arguments");
             answer = true;
         }
-        if (argsVerification.contains("-share")|| argsVerification.contains("-remove") && argsVerification.size()<7) {
+        if (((argsVerification.contains("-share")|| argsVerification.contains("-remove")) && argsVerification.size()<6)) {
             System.out.println("Incomplete arguments");
             answer = true;
         }
