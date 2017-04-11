@@ -1,9 +1,13 @@
+import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- *
+
  * Created by Melancias on 25/02/2017.
  */
 public class myGitServer {
@@ -27,10 +31,13 @@ public class myGitServer {
     }
 
      public void startServer (int port){
-        ServerSocket sSoc = null;
+     System.setProperty("javax.net.ssl.keyStore", "myServer.jks");
+     System.setProperty("javax.net.ssl.keyStorePassword", "batatas");
+     ServerSocketFactory sf = SSLServerSocketFactory.getDefault( );
+         ServerSocket sSoc = null;
 
         try {
-            sSoc = new ServerSocket(port);
+            sSoc = sf.createServerSocket(port);
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(-1);

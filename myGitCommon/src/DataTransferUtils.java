@@ -1,3 +1,5 @@
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -14,7 +16,8 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        socket = new Socket(host, port);
+        SocketFactory sf = SSLSocketFactory.getDefault( );
+        socket= sf.createSocket(host,port);
         this.user=user;
         //noinspection Since15
         outStream = new ObjectOutputStream(socket.getOutputStream());
