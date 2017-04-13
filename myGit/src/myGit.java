@@ -9,8 +9,6 @@ import java.util.Scanner;
  * Created by Melancias on 21/02/2017.
  */
 
-//TODO push com conta inexistente não pede verificação de password, aceita logo.
-//TODO pull com conta inexistente. ERRO.
 
 public class myGit {
     public static void main (String[] args) throws Exception {
