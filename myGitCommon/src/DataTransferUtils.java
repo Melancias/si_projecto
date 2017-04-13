@@ -16,7 +16,9 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+        //System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+        //mudar para o keystore de quem tiver a usar o programa
+        System.setProperty("javax.net.ssl.trustStore", "myClient.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
@@ -137,10 +139,11 @@ public class DataTransferUtils {
 
     }
 
-    public Boolean authClient(String user, String pwd) throws IOException {
+    public Boolean authClient(String user, String pwd, String action) throws IOException {
         try {
             outStream.writeObject(user);
             outStream.writeObject(pwd);
+            outStream.writeObject(action);
             outStream.flush();
             return (Boolean) inStream.readObject();
         } catch (Exception e) {
@@ -156,10 +159,10 @@ public class DataTransferUtils {
             System.out.println();
             String user = (String)inStream.readObject();
             String passwd = (String)inStream.readObject();
-            credns=new String[]{user,passwd};
+            String action = (String)inStream.readObject();
+            credns=new String[]{user,passwd,action};
         } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
+            System.out.println("Error getting credentials");
         }
         return credns;
     };
@@ -183,6 +186,7 @@ public class DataTransferUtils {
             else{
                 outStream.writeObject("ignore");
                 System.out.println("Directory or File does not exist");
+                return null;
             }
 
             outStream.writeObject(d);
@@ -280,4 +284,14 @@ public class DataTransferUtils {
         outStream.writeObject(action);
         return (Boolean) inStream.readObject();
     }
+
+    public boolean accountCheck(String user) throws IOException, ClassNotFoundException {
+        outStream.writeObject(user);
+        return (Boolean) inStream.readObject();
+    }
+
+    public String getAccountCheck() throws IOException, ClassNotFoundException {
+        return (String) getRequest();
+    }
+
 }

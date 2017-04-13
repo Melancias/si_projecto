@@ -21,12 +21,19 @@ class ServerThread extends Thread {
     public void run(){
         try {
             //noinspection Since15
+
+            if(!auth.userExists(util.getAccountCheck()))
+                util.sendCloseHandshake();
+            else
+                util.sendHandshake();
+
             System.out.println("entrou no run");
             String[] crends=util.getCredentials();
             String user = crends[0];
             String passwd = crends[1];
+            String action = crends[2];
             System.out.println("Connection established");
-            if (auth.authenticate(user,passwd)){
+            if (auth.authenticate(user,passwd,action)){
 
                 util.sendHandshake();
                 if(!util.clientRepoAccessCheck()){

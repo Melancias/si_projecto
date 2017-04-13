@@ -1,7 +1,4 @@
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -12,8 +9,6 @@ import java.util.Scanner;
  * Created by Melancias on 21/02/2017.
  */
 
-//TODO push ou pull de ficheiro que não existe. ERRO.
-//TODO verificar se conta existe antes de registar.
 //TODO push com conta inexistente não pede verificação de password, aceita logo.
 //TODO pull com conta inexistente. ERRO.
 
@@ -63,16 +58,20 @@ public class myGit {
             }
             DataTransferUtils util = null;
             util = new DataTransferUtils(host, port, localUser);
+            boolean loginRegister=false;
 
-            if(args.length < 5){
+            if(!util.accountCheck(args[0])){
+                System.out.println("Creating account: " + argumento + " due to non-existence");
                 System.out.println("Registering "+argumento);
                 System.out.println("Confirm password " + args[0] + ": ");
                 Scanner s = new Scanner(System.in);
                 String pwd = s.nextLine();
                 try{
                     if(pwd.equals(args[3])){
-                        if(util.authClient(argumento, pwd))
+                        if(util.authClient(argumento, pwd,"register")) {
                             System.out.println(argumento + " registered!");
+                            loginRegister = true;
+                        }
                         else{
                             System.out.println(argumento + " register failed!");
                         }
@@ -85,19 +84,27 @@ public class myGit {
                     e.getStackTrace();
                     }
 
-            }else{
+            }
+            if (args.length>5){
                 String repo = args[5];
-                if (!util.authClient(argumento, args[3])) {
-                    // util.createUser(argumento, args[3]);
-                    System.out.println("Error: Authentication failed");
-                    System.exit(-1);
+                if (!loginRegister){
+                    boolean answer= !util.authClient(argumento, args[3], "login");
+                    if (answer) {
+                        // util.createUser(argumento, args[3]);
+                        System.out.println("Error: Authentication failed");
+                        System.exit(-1);
+                    }
                 }
                 if(!util.checkRepoAcess(repo,localUser,args[4])){
                     System.out.println("Error: You don't have access to the repository");
                     System.exit(-1);
                 }
                 if(args[4].equals("-push")){
-                    util.sendManifest(localUser,repo,"push");
+                    Object answer=util.sendManifest(localUser,repo,"push");
+                    if(answer==null){
+                        System.out.println("Error: Repository doesn't exist locally");
+                        System.exit(-1);
+                    }
                     ArrayList<String> fileList = util.getFileList();
                     try{
                         for (String file : fileList){
@@ -126,7 +133,7 @@ public class myGit {
                     manifest = (DataManifest) request;}
 
                     catch(Exception e){
-                        if (0 == (Integer) request){
+                        if (0 == (Integer) request || 1 == (Integer) request){
                             System.out.println("Error: Repository does not exist");
                             System.exit(0);
                         }

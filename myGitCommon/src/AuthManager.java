@@ -28,7 +28,7 @@ public class AuthManager {
         return resp;
     }
 
-    public boolean authenticate(String username, String password){
+    public boolean authenticate(String username, String password,String action){
 
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(authFile));
@@ -45,7 +45,8 @@ public class AuthManager {
                 }
             }
             // In case credentials not found, register
-            return register(username, password);
+            if (action.equals("register"))
+                return register(username, password);
 
         } catch (FileNotFoundException e) {
             createAuthFile();
