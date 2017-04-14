@@ -44,6 +44,7 @@ public class AuthManager {
     }
 
     public boolean authenticate(String username, String password,String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
+        integrityCheck(this.password);
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
@@ -80,6 +81,7 @@ public class AuthManager {
             authWriter.append(credentials);
             authWriter.write(System.lineSeparator());
             authWriter.flush();
+            integrityRewrite();
         } catch (IOException e) {
             return false;
         }
@@ -97,6 +99,8 @@ public class AuthManager {
     }
 
     public static boolean integrityCheck(String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
+        if(!new File(".authFile").exists() && !new File(".authFileHash").exists())
+            return true;
         byte [] pass = password.getBytes();
         SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
         Mac m;
@@ -118,30 +122,36 @@ public class AuthManager {
         return Arrays.equals(mac, dataHash);
     }
 
-     private void integrityRewrite() throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-         File authHash= new File("./.authFileHash");
-         if(!authHash.exists()) {
-             authHash.createNewFile();
-         }
-         if(authHash.length()>0){
-             authHash.delete();
-             authHash.createNewFile();
-         }
-         byte [] pass = password.getBytes();
-         SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
-         Mac m;
-         byte[] mac=null;
-         m = Mac.getInstance("HmacSHA256");
-         m.init(key);
-         Path path = Paths.get("./.authFile");
-         byte[] data = Files.readAllBytes(path);
-         m.update(data);
-         mac = m.doFinal();
-         FileOutputStream fos = new FileOutputStream(".authFileHash");
-         ObjectOutputStream oos = new ObjectOutputStream(fos);
-         oos.writeObject(mac);
-         oos.flush();
-         fos.close();
+     private void integrityRewrite() {
+        try {
+            File authHash = new File("./.authFileHash");
+            if (!authHash.exists()) {
+                authHash.createNewFile();
+            }
+            if (authHash.length() > 0) {
+                authHash.delete();
+                authHash.createNewFile();
+            }
+            byte[] pass = password.getBytes();
+            SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
+            Mac m;
+            byte[] mac = null;
+            m = Mac.getInstance("HmacSHA256");
+            m.init(key);
+            Path path = Paths.get("./.authFile");
+            byte[] data = Files.readAllBytes(path);
+            m.update(data);
+            mac = m.doFinal();
+            FileOutputStream fos = new FileOutputStream(".authFileHash");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(mac);
+            oos.flush();
+            fos.close();
+        }
+        catch(Exception e){
+            System.out.println("Error rewriting the hash");
+            e.printStackTrace();
+        }
      }
 
 }
