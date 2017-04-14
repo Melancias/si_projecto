@@ -43,6 +43,7 @@ public class AuthManager {
 
     public boolean authenticate(String username, String password,String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
         integrityCheck(this.password);
+
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
