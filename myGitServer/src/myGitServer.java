@@ -11,11 +11,13 @@ import java.net.Socket;
  * Created by Melancias on 25/02/2017.
  */
 public class myGitServer {
-
+    //TODO: mudar a introdução da password de argumento para scanner, mas não mudem entretanto pq +facil de testar assim
     public static void main(String[] args) {;
     int port=23456;
+    String passwd = "";
     try{
         port=Integer.parseInt(args[0]);
+        passwd=args[1];
         if (Integer.parseInt(args[0]) <= 1024){
             throw new Exception();
         }
@@ -26,11 +28,11 @@ public class myGitServer {
     }
         System.out.println("Server started");
         myGitServer server = new myGitServer();
-        server.startServer(port);
+        server.startServer(port,passwd);
 
     }
 
-     public void startServer (int port){
+     public void startServer (int port,String passwd){
 //     System.setProperty("javax.net.ssl.keyStore", "myServer.keyStore");
 //     System.setProperty("javax.net.ssl.keyStorePassword", "123456");
      System.setProperty("javax.net.ssl.keyStore", "myServer.jks");
@@ -48,7 +50,7 @@ public class myGitServer {
         while(true) {
             try {
                 Socket inSoc = sSoc.accept();
-                ServerThread newServerThread = new ServerThread(inSoc);
+                ServerThread newServerThread = new ServerThread(inSoc,passwd);
                 newServerThread.start();
             }
             catch (IOException e) {

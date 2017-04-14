@@ -1,3 +1,5 @@
+import com.sun.org.apache.xpath.internal.SourceTree;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.net.Socket;
@@ -9,11 +11,12 @@ import java.util.ArrayList;
 class ServerThread extends Thread {
 
     private Socket socket = null;
-    private AuthManager auth= new AuthManager();
+    private AuthManager auth;
     private DataTransferUtils util;
-    ServerThread(Socket inSoc) throws IOException {
+    ServerThread(Socket inSoc,String passwd) throws IOException {
         socket = inSoc;
         util = new DataTransferUtils(socket);
+        auth=new AuthManager(passwd);
         System.out.println("thread do server para cada cliente");
 
     }
@@ -94,9 +97,10 @@ class ServerThread extends Thread {
 
                         }
                         else{
+                            System.out.println("Bad command; ingnoring");
+                            System.out.println("Most likely repo doesn't exist");
                             util.sendRequest(1);
                         }
-
                     }
 
 
@@ -138,6 +142,8 @@ class ServerThread extends Thread {
             //este codigo apenas exemplifica a comunicacao entre o cliente e o servidor
             //nao faz qualquer tipo de autenticacao
 
+
+            System.out.println("thread acabou");
             socket.close();
 
         } catch (IOException e) {
