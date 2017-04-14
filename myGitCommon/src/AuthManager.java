@@ -4,11 +4,13 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 /**
  * Created by Melancias on 03/03/2017.
@@ -41,9 +43,7 @@ public class AuthManager {
         return resp;
     }
 
-    public boolean authenticate(String username, String password,String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
-        integrityCheck(this.password);
-
+    public boolean authenticate(String username, String password,String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
@@ -96,7 +96,7 @@ public class AuthManager {
         return false;
     }
 
-    private boolean integrityCheck(String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
+    public static boolean integrityCheck(String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
         byte [] pass = password.getBytes();
         SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
         Mac m;
@@ -108,10 +108,40 @@ public class AuthManager {
         byte[] data = Files.readAllBytes(path);
         m.update(data);
         mac = m.doFinal();
-        //Arrays.equals(correct, digest)
-        System.out.println("Actual Signature:");
+        System.out.println("Actual Hash:");
         System.out.println(new String(HexBin.encode(mac)));
-        return true;
+        FileInputStream fis = new FileInputStream(".authFileHash");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        byte[] dataHash = (byte[]) ois.readObject();
+        System.out.println("Saved Hash");
+        System.out.println(new String(HexBin.encode(dataHash)));
+        return Arrays.equals(mac, dataHash);
     }
+
+     private void integrityRewrite() throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+         File authHash= new File("./.authFileHash");
+         if(!authHash.exists()) {
+             authHash.createNewFile();
+         }
+         if(authHash.length()>0){
+             authHash.delete();
+             authHash.createNewFile();
+         }
+         byte [] pass = password.getBytes();
+         SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
+         Mac m;
+         byte[] mac=null;
+         m = Mac.getInstance("HmacSHA256");
+         m.init(key);
+         Path path = Paths.get("./.authFile");
+         byte[] data = Files.readAllBytes(path);
+         m.update(data);
+         mac = m.doFinal();
+         FileOutputStream fos = new FileOutputStream(".authFileHash");
+         ObjectOutputStream oos = new ObjectOutputStream(fos);
+         oos.writeObject(mac);
+         oos.flush();
+         fos.close();
+     }
 
 }

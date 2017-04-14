@@ -5,6 +5,8 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
 
@@ -42,12 +44,22 @@ public class myGitServer {
 
         try {
             sSoc = sf.createServerSocket(port);
+            if(!AuthManager.integrityCheck(passwd)){
+                System.out.println("Authentication file compromised or wrong password was used");
+                System.exit(-1);
+            }
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(-1);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
 
-        while(true) {
+         while(true) {
             try {
                 Socket inSoc = sSoc.accept();
                 ServerThread newServerThread = new ServerThread(inSoc,passwd);
