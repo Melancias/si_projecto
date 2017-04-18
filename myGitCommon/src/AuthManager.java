@@ -1,7 +1,6 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -82,8 +81,15 @@ public class AuthManager {
             authWriter.write(System.lineSeparator());
             authWriter.flush();
             integrityRewrite();
+            authCipher();
         } catch (IOException e) {
             return false;
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
         }
         return true;
     }
@@ -153,5 +159,33 @@ public class AuthManager {
             e.printStackTrace();
         }
      }
+
+     private void authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+         System.out.println("lol");
+         byte [] pass = password.getBytes();
+         SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
+         Cipher c = Cipher.getInstance("AES");
+         c.init(Cipher.ENCRYPT_MODE, key);
+         FileInputStream fis;
+         FileOutputStream fos;
+         CipherOutputStream cos;
+         try {
+             fis = new FileInputStream(".authFile");
+             fos = new FileOutputStream(".authFile.cif");
+             cos = new CipherOutputStream(fos, c);
+             byte[] b = new byte[16];
+             int i = fis.read(b);
+             while (i != -1) {
+                 cos.write(b, 0, i);
+                 i = fis.read(b);
+             }
+             cos.close();
+         } catch (FileNotFoundException e) {
+             e.printStackTrace();
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+     }
+
 
 }
