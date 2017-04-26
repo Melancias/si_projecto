@@ -4,7 +4,6 @@ import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,12 +20,13 @@ import java.util.Arrays;
 public class AuthManager {
 
     private File authFile;
-    private String password;
+    private static String password;
     public AuthManager(String password) {
         this.authFile = new File("./.authFile");
         this.password=password;
     }
 
+    public static String getPassword(){return password;}
 
     public static boolean userExists(String username) throws IOException {
         File authFile = new File("./.authFile");
@@ -46,7 +46,7 @@ public class AuthManager {
     }
 
     public boolean authenticate(String username, String password,String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException {
-        integrityCheck(this.password);
+        integrityCheck(authFile.getAbsolutePath(), this.password);
         try {
             BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
@@ -86,7 +86,7 @@ public class AuthManager {
             authWriter.write(System.lineSeparator());
             authWriter.flush();
 
-            integrityRewrite();
+            integrityRewrite(authFile.getAbsolutePath(),getPassword());
             authCipher();
 
         } catch (IOException e) {
@@ -115,9 +115,9 @@ public class AuthManager {
         return false;
     }
 
-    public static boolean integrityCheck(String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
+    public static boolean integrityCheck(String absolutePath, String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
 
-        if(!new File(".authFile").exists() && !new File(".authFileHash").exists())
+        if(!new File(absolutePath).exists() && !new File(absolutePath+".hash").exists())
             return true;
 
         byte [] pass = password.getBytes();
@@ -130,7 +130,7 @@ public class AuthManager {
         m.init(key);
 
         //get file byte stream compare digests
-        Path path = Paths.get("./.authFile");
+        Path path = Paths.get(absolutePath);
         byte[] data = Files.readAllBytes(path);
         m.update(data);
         mac = m.doFinal();
@@ -138,7 +138,7 @@ public class AuthManager {
         System.out.println("Actual Hash:");
         System.out.println(new String(HexBin.encode(mac)));
 
-        FileInputStream fis = new FileInputStream(".authFileHash");
+        FileInputStream fis = new FileInputStream(absolutePath+".hash");
         ObjectInputStream ois = new ObjectInputStream(fis);
 
         byte[] dataHash = (byte[]) ois.readObject();
@@ -149,9 +149,9 @@ public class AuthManager {
         return Arrays.equals(mac, dataHash);
     }
 
-     private void integrityRewrite() {
+     public static void integrityRewrite(String absolutePath, String password) {
         try {
-            File authHash = new File("./.authFileHash");
+            File authHash = new File(absolutePath+".hash");
             if (!authHash.exists()) {
                 authHash.createNewFile();
             }
@@ -160,7 +160,7 @@ public class AuthManager {
                 authHash.createNewFile();
             }
 
-            byte[] pass = password.getBytes();
+            byte[] pass = AuthManager.password.getBytes();
             SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
 
             Mac m;
@@ -168,12 +168,12 @@ public class AuthManager {
             m = Mac.getInstance("HmacSHA256");
             m.init(key);
 
-            Path path = Paths.get("./.authFile");
+            Path path = Paths.get(absolutePath);
             byte[] data = Files.readAllBytes(path);
             m.update(data);
             mac = m.doFinal();
 
-            FileOutputStream fos = new FileOutputStream(".authFileHash");
+            FileOutputStream fos = new FileOutputStream(absolutePath+".hash");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(mac);
 
@@ -243,6 +243,9 @@ public class AuthManager {
          } catch (IOException e) {
              e.printStackTrace();
          }
+     }
+     public BufferedReader authCipherReader(){
+        return null;
      }
 
 
