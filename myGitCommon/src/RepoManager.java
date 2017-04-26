@@ -1,4 +1,8 @@
+import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
+
 import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by pedro on 11-03-2017.
@@ -71,6 +75,10 @@ public class RepoManager {
             shareFile= new File(username+"/"+structure[0]+"/.shared");
         }
         try {
+            if(!AuthManager.integrityCheck(shareFile.getAbsolutePath(),AuthManager.getPassword())) {
+                System.out.println("Repo integrity broken");
+                return false;
+            }
             BufferedReader authReader = new BufferedReader(new FileReader(shareFile));
 
             for (String line; (line = authReader.readLine()) != null; ) {
@@ -102,12 +110,13 @@ public class RepoManager {
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
-                if(!isBeingShared(owner+"/"+repoPath, username) & AuthManager.userExists(username)){
+                if(!isBeingShared(owner+"/"+repoPath, username) & AuthManager.userExists(username) & AuthManager.integrityCheck(shareFile.getAbsolutePath(),AuthManager.getPassword())){
                     shareWriter.append(username + "\n");
                     shareWriter.append(System.lineSeparator());
                     shareWriter.flush();
                     System.out.println(repoPath +" shared with: " + username);
                     answer=true;
+                    AuthManager.integrityRewrite(shareFile.getAbsolutePath(),AuthManager.getPassword());
                 }
 
                 shareWriter.close();
@@ -116,14 +125,16 @@ public class RepoManager {
 
         } catch (IOException e) {
             System.out.println("Error: Could not read .shared");
+        } catch (Exception e) {
+            System.out.println("probably problem with integrity");
+            e.printStackTrace();
         }
-        return answer;
+         return answer;
     }
 
 
      static boolean createShareFile(String repoPath){
         File shareFile = new File(repoPath + "/.shared");
-
         try {
             shareFile.createNewFile();;
         } catch (IOException e) {
@@ -176,6 +187,7 @@ public class RepoManager {
          shareWriter.append(username + "\n");
          shareWriter.flush();
          shareWriter.close();
+         AuthManager.integrityRewrite(shareFile.getAbsolutePath(),AuthManager.getPassword());
 
 //         shareWith(repo, username, username);
      }
