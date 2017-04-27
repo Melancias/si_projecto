@@ -111,9 +111,11 @@ public class AuthManager {
 
             integrityRewrite(authFile.getAbsolutePath(), getPassword());
 
-            readCipheredFile(authLineDecipher(authCipher()));
-
+//            readCipheredFile(authLineDecipher(authCipher()));
+            authCipher();
+            readCipheredFile(authLineDecipher());
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
         } catch (NoSuchPaddingException e) {
             e.printStackTrace();
@@ -124,6 +126,8 @@ public class AuthManager {
         } catch (InvalidKeySpecException e) {
             e.printStackTrace();
         } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         return true;
@@ -209,17 +213,20 @@ public class AuthManager {
         }
     }
 
-    private Cipher authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
+    private Cipher authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, IOException {
         System.out.println("lol");
         byte[] pass = password.getBytes();
 
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
-
         Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
         c.init(Cipher.ENCRYPT_MODE, key);
 
+        FileOutputStream kos = new FileOutputStream(".authFile.salt");
+        ObjectOutputStream oos = new ObjectOutputStream(kos);
+        oos.writeObject(c.getParameters().getEncoded());
+        oos.close();
         FileInputStream fis;
         FileOutputStream fos;
         CipherOutputStream cos;
@@ -248,18 +255,21 @@ public class AuthManager {
         return c;
     }
 
-    public byte[] authLineDecipher(Cipher c) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public byte[] authLineDecipher() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException, ClassNotFoundException {
         byte[] pass = password.getBytes();
-
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
-        FileOutputStream fos2 = new FileOutputStream("decifrado.txt");
         FileInputStream fis2 = new FileInputStream(".authFile.cif");
-
+        FileInputStream saltreader = new FileInputStream(".authFile.salt");
+        ObjectInputStream saltObject = new ObjectInputStream(saltreader);
+        byte[] saltParameters = (byte[]) saltObject.readObject();
+        AlgorithmParameters salt = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
+        salt.init(saltParameters);
+        saltObject.close();
 
         Cipher decifrador = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-        decifrador.init(Cipher.DECRYPT_MODE, key, c.getParameters());
+        decifrador.init(Cipher.DECRYPT_MODE, key, salt);
         decifrador.doFinal();
         CipherInputStream decis = new CipherInputStream(fis2, decifrador);
 
@@ -271,19 +281,21 @@ public class AuthManager {
             test.flush();
             j = decis.read(decifrado);
         }
-
-        fos2.close();
         fis2.close();
         decis.close();
         return test.toByteArray();
     }
 
-    public BufferedReader readCipheredFile(byte[] decipheredFile) {
+    public BufferedReader readCipheredFile(byte[] decipheredFile) throws IOException {
         InputStream is = null;
         BufferedReader bfReader = null;
         try {
             is = new ByteArrayInputStream(decipheredFile);
             bfReader = new BufferedReader(new InputStreamReader(is));
+            String temp = null;
+            while((temp = bfReader.readLine()) != null){
+                System.out.println(temp);
+            }
             }
         catch(Exception e){
             e.printStackTrace();
