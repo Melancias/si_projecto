@@ -101,6 +101,7 @@ public class RepoManager {
 
         boolean answer=false;
         try {
+            AuthManager authManager = AuthManager.getInstance();
             BufferedReader readerBuffer = new BufferedReader(new FileReader(shareFile));
             String client = readerBuffer.readLine();
             if(client.equals(owner)){
@@ -108,13 +109,13 @@ public class RepoManager {
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
-                if(!isBeingShared(owner+"/"+repoPath, username) & AuthManager.userExists(username) & AuthManager.integrityCheck(shareFile.getAbsolutePath(),AuthManager.getPassword())){
+                if(!isBeingShared(owner+"/"+repoPath, username) & authManager.userExists(username) & authManager.integrityCheck(shareFile.getAbsolutePath(), authManager.getPassword())){
                     shareWriter.append(username + "\n");
                     shareWriter.append(System.lineSeparator());
                     shareWriter.flush();
                     System.out.println(repoPath +" shared with: " + username);
                     answer=true;
-                    AuthManager.integrityRewrite(shareFile.getAbsolutePath(),AuthManager.getPassword());
+                    authManager.integrityRewrite(shareFile.getAbsolutePath(), authManager.getPassword());
                 }
 
                 shareWriter.close();
@@ -175,7 +176,9 @@ public class RepoManager {
          dir.mkdir();
      }
 
-     static void createRepo(String repo, String username) throws IOException {
+     static void createRepo(String repo, String username) throws Exception {
+
+         AuthManager authManager = AuthManager.getInstance();
          File dir    =  new File(repo);
          dir.mkdirs();
          createShareFile(repo);
@@ -185,7 +188,7 @@ public class RepoManager {
          shareWriter.append(username + "\n");
          shareWriter.flush();
          shareWriter.close();
-         AuthManager.integrityRewrite(shareFile.getAbsolutePath(),AuthManager.getPassword());
+         authManager.integrityRewrite(shareFile.getAbsolutePath(),authManager.getPassword());
 
 //         shareWith(repo, username, username);
      }

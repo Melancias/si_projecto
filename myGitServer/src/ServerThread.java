@@ -13,10 +13,10 @@ class ServerThread extends Thread {
     private Socket socket = null;
     private AuthManager auth;
     private DataTransferUtils util;
-    ServerThread(Socket inSoc,String passwd) throws IOException {
+    ServerThread(Socket inSoc,String password) throws IOException {
         socket = inSoc;
         util = new DataTransferUtils(socket);
-        auth=new AuthManager(passwd);
+        auth = AuthManager.getInstance(password);
         System.out.println("thread do server para cada cliente");
 
     }
