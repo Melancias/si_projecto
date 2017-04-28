@@ -1,6 +1,4 @@
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by pedro on 11-03-2017.
@@ -73,7 +71,7 @@ public class RepoManager {
             shareFile= new File(username+"/"+structure[0]+"/.shared");
         }
         try {
-            if(!AuthManager.getInstance().integrityCheck(shareFile.getAbsolutePath(), AuthManager.getInstance().getPassword())) {
+            if(!AuthManager.getInstance().integritySharedCheck(shareFile.getAbsolutePath(), AuthManager.getInstance().getPassword())) {
                 System.out.println("Repo integrity broken");
                 return false;
             }
@@ -109,13 +107,13 @@ public class RepoManager {
                 FileWriter shareWriter = new FileWriter(shareFile, true);
 
                 // If already shared with user
-                if(!isBeingShared(owner+"/"+repoPath, username) & authManager.userExists(username) & authManager.integrityCheck(shareFile.getAbsolutePath(), authManager.getPassword())){
+                if(!isBeingShared(owner+"/"+repoPath, username) & authManager.userExists(username) & authManager.integritySharedCheck(shareFile.getAbsolutePath(), authManager.getPassword())){
                     shareWriter.append(username + "\n");
                     shareWriter.append(System.lineSeparator());
                     shareWriter.flush();
                     System.out.println(repoPath +" shared with: " + username);
                     answer=true;
-                    authManager.integrityRewrite(shareFile.getAbsolutePath(), authManager.getPassword());
+                    authManager.integritySharedRewrite(shareFile.getAbsolutePath(), authManager.getPassword());
                 }
 
                 shareWriter.close();
@@ -177,18 +175,22 @@ public class RepoManager {
      }
 
      static void createRepo(String repo, String username) throws Exception {
-
-         AuthManager authManager = AuthManager.getInstance();
-         File dir    =  new File(repo);
-         dir.mkdirs();
-         createShareFile(repo);
-         //criacao e adicao da conta
-         File shareFile = new File(repo + "/.shared");
-         FileWriter shareWriter = new FileWriter(shareFile, true);
-         shareWriter.append(username + "\n");
-         shareWriter.flush();
-         shareWriter.close();
-         authManager.integrityRewrite(shareFile.getAbsolutePath(),authManager.getPassword());
+        try {
+            AuthManager authManager = AuthManager.getInstance();
+            File dir = new File(repo);
+            dir.mkdirs();
+            createShareFile(repo);
+            //criacao e adicao da conta
+            File shareFile = new File(repo + "/.shared");
+            FileWriter shareWriter = new FileWriter(shareFile, true);
+            shareWriter.append(username + "\n");
+            shareWriter.flush();
+            shareWriter.close();
+            authManager.integritySharedRewrite(shareFile.getAbsolutePath(), authManager.getPassword());
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
 
 //         shareWith(repo, username, username);
      }

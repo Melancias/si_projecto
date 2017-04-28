@@ -1,10 +1,8 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+
 
 /**
  * Created by Melancias on 03/03/2017.
@@ -30,10 +29,7 @@ import java.util.Arrays;
 
             nota: fazer o passo inverso a cada registo
             nota2: remover
-
-
-
-     */
+    */
 
 public class AuthManager {
 
@@ -66,19 +62,18 @@ public class AuthManager {
         return password;
     }
 
-    public  boolean userExists(String username) throws IOException {
-        BufferedReader bfReader = readCipheredFile(authFie);
+    public  boolean userExists(String username) throws Exception {
 
         if (!authFile.exists())
             return false;
 
+        BufferedReader authReader = readCipheredFile(authLineDecipher());
 
-        BufferedReader authReader = new BufferedReader(new FileReader(authFile));
+//        BufferedReader authReader = new BufferedReader(new FileReader(authFile));
 
         // Read each line until credentials match
         boolean resp = false;
         for (String line; (line = authReader.readLine()) != null; ) {
-
             String[] credentials = line.split("\\:");
             if (credentials[0].equals(username))
                 resp = true;
@@ -87,9 +82,9 @@ public class AuthManager {
     }
 
     public boolean authenticate(String username, String password, String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException {
-        integrityCheck(authFile.getAbsolutePath(), this.password);
+        integrityCheck();
         try {
-            BufferedReader authReader = new BufferedReader(new FileReader(authFile));
+            BufferedReader authReader = readCipheredFile(authLineDecipher());
 
             // Read each line until credentials match
             for (String line; (line = authReader.readLine()) != null; ) {
@@ -107,9 +102,19 @@ public class AuthManager {
                 return register(username, password);
 
         } catch (FileNotFoundException e) {
-            createAuthFile();
+            try {
+                createAuthFile();
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
             return register(username, password);
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
             e.printStackTrace();
         }
 
@@ -139,7 +144,7 @@ public class AuthManager {
             //authWriter.write(System.lineSeparator());
             //authWriter.flush();
 
-            integrityRewrite(authFile.getAbsolutePath(), getPassword());
+            authHashRewrite(newFile);
 
             authFileCipher(newFile);
 
@@ -162,9 +167,12 @@ public class AuthManager {
         return true;
     }
 
-    public boolean createAuthFile() {
+    public boolean createAuthFile() throws Exception{
         try {
-            return authFile.createNewFile();
+             new File(".authFileTemp").createNewFile();
+             authCipher();
+            new File(".authFileTemp").delete();
+             return true;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -172,7 +180,7 @@ public class AuthManager {
         return false;
     }
 
-    public static boolean integrityCheck(String absolutePath, String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
+    public static boolean integritySharedCheck(String absolutePath, String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
 
         if (!new File(absolutePath).exists() && !new File(absolutePath + ".hash").exists())
             return true;
@@ -206,7 +214,8 @@ public class AuthManager {
         return Arrays.equals(mac, dataHash);
     }
 
-    public boolean integrityCheck() throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException, InvalidKeySpecException, NoSuchPaddingException {
+    public boolean integrityCheck() {
+        try{
         if (! authFile.exists() && !new File(authFile.getAbsolutePath() + ".hash").exists())
             return true;
 
@@ -221,7 +230,7 @@ public class AuthManager {
 
         //get file byte stream compare digests
 
-        byte[] data = authLineDecipher(authCipher());
+        byte[] data = authLineDecipher();
         m.update(data);
         mac = m.doFinal();
 
@@ -236,10 +245,12 @@ public class AuthManager {
         System.out.println("Saved Hash");
         System.out.println(new String(HexBin.encode(dataHash)));
 
-        return Arrays.equals(mac, dataHash);
+        return Arrays.equals(mac, dataHash);}
+        catch(Exception e){e.printStackTrace();}
+        return false;
     }
 
-    public static void integrityRewrite(String absolutePath, String password) {
+    public static void integritySharedRewrite(String absolutePath, String password) {
         try {
             File authHash = new File(absolutePath + ".hash");
             if (!authHash.exists()) {
@@ -275,14 +286,55 @@ public class AuthManager {
         }
     }
 
+    private void authHashRewrite(byte[] newFile) {
+        try {
+            File authHash = new File(this.authFile.getAbsolutePath() + ".hash");
+            if (!authHash.exists()) {
+                authHash.createNewFile();
+            }
+            if (authHash.length() > 0) {
+                authHash.delete();
+                authHash.createNewFile();
+            }
+
+            byte[] pass = AuthManager.password.getBytes();
+            SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
+
+            Mac m;
+            byte[] mac = null;
+            m = Mac.getInstance("HmacSHA256");
+            m.init(key);
+
+            byte[] data = newFile;
+            m.update(data);
+            mac = m.doFinal();
+
+            FileOutputStream fos = new FileOutputStream(this.authFile.getAbsolutePath() + ".hash");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(mac);
+            oos.flush();
+            fos.close();
+        } catch (Exception e) {
+            System.out.println("Error rewriting the hash");
+            e.printStackTrace();
+        }
+    }
+
     private Cipher getCipherFromPassword() throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException {
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
-
         Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
         c.init(Cipher.ENCRYPT_MODE, key);
-
+        FileOutputStream kos = null;
+        try {
+            kos = new FileOutputStream(".authFile.salt");
+            ObjectOutputStream oos = new ObjectOutputStream(kos);
+            oos.writeObject(c.getParameters().getEncoded());
+            oos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return c;
     }
 
@@ -291,7 +343,6 @@ public class AuthManager {
         Cipher c = getCipherFromPassword();
         FileOutputStream fos;
         CipherOutputStream cos;
-
         try {
             fos = new FileOutputStream(".authFile");
             cos = new CipherOutputStream(fos, c);
@@ -313,15 +364,12 @@ public class AuthManager {
         return c;
     }
 
-    private Cipher authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, IOException {
-        System.out.println("lol");
+    private void authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, IOException {
         byte[] pass = password.getBytes();
-
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
-
-        Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+        Cipher c =  Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
         c.init(Cipher.ENCRYPT_MODE, key);
 
         FileOutputStream kos = new FileOutputStream(".authFile.salt");
@@ -333,8 +381,8 @@ public class AuthManager {
         CipherOutputStream cos;
 
         try {
-            fis = new FileInputStream(".authFile");
-            fos = new FileOutputStream(".authFile.cif");
+            fis = new FileInputStream(".authFileTemp");
+            fos = new FileOutputStream(".authFile");
             cos = new CipherOutputStream(fos, c);
 
             byte[] b = new byte[16];
@@ -348,33 +396,30 @@ public class AuthManager {
             cos.close();
             fos.close();
             cos.close();
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return c;
     }
 
     public byte[] authLineDecipher() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException, ClassNotFoundException {
         byte[] pass = password.getBytes();
-
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
-        FileInputStream fis2 = new FileInputStream(".authFile.cif");
         FileInputStream saltreader = new FileInputStream(".authFile.salt");
         ObjectInputStream saltObject = new ObjectInputStream(saltreader);
         byte[] saltParameters = (byte[]) saltObject.readObject();
         AlgorithmParameters salt = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
         salt.init(saltParameters);
         saltObject.close();
-
         Cipher decifrador = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
         decifrador.init(Cipher.DECRYPT_MODE, key, salt);
         decifrador.doFinal();
+        FileInputStream fis2 = new FileInputStream(".authFile");
         CipherInputStream decis = new CipherInputStream(fis2, decifrador);
-
         byte[] decifrado = new byte[16];
         ByteArrayOutputStream test= new ByteArrayOutputStream();
         int j = decis.read(decifrado);
@@ -383,7 +428,6 @@ public class AuthManager {
             test.flush();
             j = decis.read(decifrado);
         }
-
         fis2.close();
         decis.close();
         return test.toByteArray();
@@ -395,10 +439,6 @@ public class AuthManager {
         try {
             is = new ByteArrayInputStream(decipheredFile);
             bfReader = new BufferedReader(new InputStreamReader(is));
-            String temp = null;
-            while((temp = bfReader.readLine()) != null){
-                System.out.println(temp);
-            }
             }
         catch(Exception e){
             e.printStackTrace();

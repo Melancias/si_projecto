@@ -35,28 +35,22 @@ public class myGitServer {
     }
 
      public void startServer (int port,String passwd){
-     System.setProperty("javax.net.ssl.keyStore", "myServer.keyStore");
-     System.setProperty("javax.net.ssl.keyStorePassword", "pedro123");
-//     System.setProperty("javax.net.ssl.keyStore", "myServer.jks");
-//     System.setProperty("javax.net.ssl.keyStorePassword", "batatas");
+//     System.setProperty("javax.net.ssl.keyStore", "myServer.keyStore");
+//     System.setProperty("javax.net.ssl.keyStorePassword", "pedro123");
+     System.setProperty("javax.net.ssl.keyStore", "myServer.jks");
+     System.setProperty("javax.net.ssl.keyStorePassword", "batatas");
      ServerSocketFactory sf = SSLServerSocketFactory.getDefault( );
          ServerSocket sSoc = null;
 
         try {
             sSoc = sf.createServerSocket(port);
-            if(!AuthManager.integrityCheck("./.authFile",passwd)){
+            if(!AuthManager.getInstance(passwd).integrityCheck()){
                 System.out.println("Authentication file compromised or wrong password was used");
                 System.exit(-1);
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(-1);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         }
 
          while(true) {

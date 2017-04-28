@@ -49,7 +49,7 @@ public class DataManifest implements Serializable{
     public Long getModifiedData(String file){return dataManifest.get(file);}
 
 
-    public static ArrayList<String> processManifest(DataManifest data) throws IOException {
+    public static ArrayList<String> processManifest(DataManifest data) throws Exception {
         if (data.action.equals("push"))
             return processPushManifest(data);
         else{
@@ -83,7 +83,7 @@ public class DataManifest implements Serializable{
         return files;
     }
 
-    private static ArrayList<String> processPushManifest(DataManifest data) throws IOException {
+    private static ArrayList<String> processPushManifest(DataManifest data) throws Exception {
         String[] structure=data.repo.split("/");
         ArrayList<String> files=new ArrayList<String>();;
         File dirTest= new File(data.repo);
