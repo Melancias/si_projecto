@@ -73,7 +73,7 @@ public class RepoManager {
             shareFile= new File(username+"/"+structure[0]+"/.shared");
         }
         try {
-            if(!AuthManager.integrityCheck(shareFile.getAbsolutePath(),AuthManager.getPassword())) {
+            if(!AuthManager.getInstance().integrityCheck(shareFile.getAbsolutePath(), AuthManager.getInstance().getPassword())) {
                 System.out.println("Repo integrity broken");
                 return false;
             }
