@@ -1,3 +1,6 @@
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.lang.reflect.Array;
@@ -7,6 +10,8 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.cert.Certificate;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -242,7 +247,7 @@ public class DataManifest implements Serializable{
             public boolean accept(File pathname) {
                 String tempName= pathname.getName();
                 try{
-                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*") || tempName.matches(".*\\.sig$")){
+                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*")){
                         return false;}
                     else
                     {
@@ -278,26 +283,112 @@ public class DataManifest implements Serializable{
                 return false;
     }
 
-    static File generateSignature(String path){
+    static void signatureCreator(String path){
         try {
             FileInputStream kfile = null;
             byte[] data= Files.readAllBytes(Paths.get(path));
-            kfile = new FileInputStream("cliente.jks");
+            kfile = new FileInputStream("finalkeystoreclient.jks");
             FileOutputStream fos = new FileOutputStream(path+".sig");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             KeyStore kstore = KeyStore.getInstance("JKS");
-            kstore.load(kfile, "bolachas".toCharArray());
-            PrivateKey myPrivateKey=(PrivateKey) kstore.getKey("cliente", "bolachas".toCharArray());
+            kstore.load(kfile, "batatas".toCharArray());
+            PrivateKey myPrivateKey=(PrivateKey) kstore.getKey("seginffcul cliente", "batatas".toCharArray());
             Signature s = Signature.getInstance("SHA256withRSA");
             s.initSign(myPrivateKey);
             s.update(data);
+            oos.writeObject(data);
             oos.writeObject(s.sign( ));
             fos.close();
-            return new File(path+".sig");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+    }
+
+    public void CipherKey(SecretKey key, String fileName) {
+        try {
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.ENCRYPT_MODE, key);
+
+            // TODO Muda isto!
+            FileInputStream fileInputStream = new FileInputStream("Server.jks");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(fileInputStream, "bolachas".toCharArray());
+            Certificate certificate = keyStore.getCertificate("dd");
+
+            Cipher ckey = Cipher.getInstance("RSA");
+            ckey.init(Cipher.WRAP_MODE, certificate);
+
+            byte[] cipheredKey = ckey.wrap(key);
+
+            FileOutputStream kos = new FileOutputStream(fileName + ".key.server");
+            //ObjectOutputStream oos = new ObjectOutputStream(kos);
+            kos.write(cipheredKey);
+
+            kos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public File decipherKey(String fileName) {
+
+        try {
+            File file = new File(fileName + ".key.server");
+            FileInputStream kos = new FileInputStream(file);
+            //ObjectInputStream  bos = new ObjectInputStream(kos);
+
+            byte[] chaveCifrada = new byte[256];
+            int i = kos.read(chaveCifrada);
+
+            // TODO Muda isto
+            FileInputStream fileInputStream = new FileInputStream("Servidor.jks");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(fileInputStream, "123456".toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey("dd", "123456".toCharArray());
+
+            Cipher c = Cipher.getInstance("RSA");
+            c.init(Cipher.UNWRAP_MODE, privateKey );
+
+
+            Key decipheredKey = c.unwrap(chaveCifrada, "AES", Cipher.SECRET_KEY);
+
+            FileOutputStream fos   = new FileOutputStream(fileName + ".key");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            oos.write(decipheredKey.getEncoded());
+
+            oos.flush();
+            oos.close();
+            fos.flush();
+            fos.close();
+            kos.close();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new File(fileName + ".key");
+    }
+
+    public File generateCipherKey(String fileName) throws NoSuchAlgorithmException, IOException {
+        KeyGenerator kg = KeyGenerator.getInstance("AES");
+        kg.init(128);
+        SecretKey key = kg.generateKey();
+
+        FileOutputStream fos = new FileOutputStream(fileName + ".key");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        byte[] keyBytes = key.getEncoded();
+
+        oos.write(keyBytes);
+
+        oos.flush();
+        oos.close();
+        fos.flush();
+        fos.close();
+
+        return new File(fileName + ".key");
     }
 
     static boolean checkSignature(String path){
@@ -332,10 +423,4 @@ public class DataManifest implements Serializable{
         return false;
     }
 
-
-
-
-
-
 }
-
