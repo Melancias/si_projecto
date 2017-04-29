@@ -1,12 +1,11 @@
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -300,6 +299,34 @@ public class DataManifest implements Serializable{
         return null;
     }
 
+
+    public void CipherKey(SecretKey key, String fileName) {
+        try {
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.ENCRYPT_MODE, key);
+
+            // TODO Muda isto!
+            FileInputStream fileInputStream = new FileInputStream("Server.jks");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(fileInputStream, "bolachas".toCharArray());
+            Certificate certificate = keyStore.getCertificate("dd");
+
+            Cipher ckey = Cipher.getInstance("RSA");
+            ckey.init(Cipher.WRAP_MODE, certificate);
+
+            byte[] cipheredKey = ckey.wrap(key);
+
+            FileOutputStream kos = new FileOutputStream(fileName + ".key.server");
+            //ObjectOutputStream oos = new ObjectOutputStream(kos);
+            kos.write(cipheredKey);
+
+            kos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     static boolean checkSignature(String path){
         boolean answer=false;
         try {
@@ -330,6 +357,133 @@ public class DataManifest implements Serializable{
             e.printStackTrace();
         }
         return false;
+    }
+
+
+    public File decipherKey(String fileName) {
+
+        try {
+            File file = new File(fileName + ".key.server");
+            FileInputStream kos = new FileInputStream(file);
+            //ObjectInputStream  bos = new ObjectInputStream(kos);
+
+            byte[] chaveCifrada = new byte[256];
+            int i = kos.read(chaveCifrada);
+
+            // TODO Muda isto
+            FileInputStream fileInputStream = new FileInputStream("Servidor.jks");
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(fileInputStream, "123456".toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey("dd", "123456".toCharArray());
+
+            Cipher c = Cipher.getInstance("RSA");
+            c.init(Cipher.UNWRAP_MODE, privateKey );
+
+
+            Key decipheredKey = c.unwrap(chaveCifrada, "AES", Cipher.SECRET_KEY);
+
+            FileOutputStream fos   = new FileOutputStream(fileName + ".key");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            oos.write(decipheredKey.getEncoded());
+
+            oos.flush();
+            oos.close();
+            fos.flush();
+            fos.close();
+            kos.close();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new File(fileName + ".key");
+    }
+
+    public File generateCipherKey(String fileName) throws NoSuchAlgorithmException, IOException {
+        KeyGenerator kg = KeyGenerator.getInstance("AES");
+        kg.init(128);
+        SecretKey key = kg.generateKey();
+
+        FileOutputStream fos = new FileOutputStream(fileName + ".key");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        byte[] keyBytes = key.getEncoded();
+
+        oos.write(keyBytes);
+
+        oos.flush();
+        oos.close();
+        fos.flush();
+        fos.close();
+
+        return new File(fileName + ".key");
+    }
+
+    public File cipherFile(File secretKeyFile, File fileToCipher) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
+
+        FileInputStream fisKey;
+        ObjectInputStream oisKey;
+        FileInputStream fisFile;
+        FileOutputStream fos;
+        CipherOutputStream cos;
+
+        fisKey = new FileInputStream(secretKeyFile);
+        oisKey = new ObjectInputStream(fisKey);
+
+        fisFile = new FileInputStream(fileToCipher);
+
+        byte[] key = (byte[]) oisKey.readObject();
+
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        Cipher c = Cipher.getInstance("AES");
+        c.init(Cipher.ENCRYPT_MODE, keySpec);
+
+
+        fos = new FileOutputStream(fileToCipher.getName()+".cif");
+        cos = new CipherOutputStream(fos, c);
+
+        byte[] b = new byte[16];
+        int i = fisFile.read(b);
+        while (i != -1) {
+            cos.write(b, 0, i);
+            i = fisFile.read(b);
+        }
+        cos.close();
+
+        return new File(fileToCipher.getName()+".cif");
+    }
+
+    public File decipherFile(File secretKeyFile, File fileToDecipher) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
+
+        FileInputStream fis = new FileInputStream(secretKeyFile);
+
+        byte[] keyEncoded = new byte[16];
+
+        ObjectInputStream ois = new ObjectInputStream(fis);
+
+        ois.read(keyEncoded);
+        ois.close();
+
+        SecretKeySpec keySpec2 = new SecretKeySpec(keyEncoded, "AES");
+        //SecretKeySpec é subclasse de secretKey
+        Cipher c = Cipher.getInstance("AES");
+        c.init(Cipher.DECRYPT_MODE, keySpec2);
+        FileInputStream fis2;
+        FileOutputStream fos;
+        fis2 = new FileInputStream(fileToDecipher);
+        fos = new FileOutputStream(fileToDecipher.getName()+".temp");
+        CipherInputStream cis = new CipherInputStream(fis2,c);
+        byte[] b = new byte[16];
+        int i = cis.read(b);
+        while (i != -1) {
+            fos.write(b, 0, i);
+            i = cis.read(b);
+        }
+        fos.close();
+        cis.close();
+
+        return new File(fileToDecipher.getName()+".temp");
     }
 
 }
