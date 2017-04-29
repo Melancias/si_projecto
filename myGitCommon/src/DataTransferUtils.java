@@ -84,7 +84,7 @@ public class DataTransferUtils {
         return false;
     }
 
-    public void pullFile(String path,String userType) throws IOException, ClassNotFoundException {
+    public long pullFile(String path,String userType) throws IOException, ClassNotFoundException {
 
         File file = new File(path);
         int bytes;
@@ -144,7 +144,7 @@ public class DataTransferUtils {
             fileOut.flush();
             fileOut.close();
         }
-
+        return lastModified;
 
     }
 

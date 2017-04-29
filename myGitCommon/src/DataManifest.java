@@ -1,8 +1,6 @@
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.crypto.Data;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
@@ -241,7 +239,7 @@ public class DataManifest implements Serializable{
             public boolean accept(File pathname) {
                 String tempName= pathname.getName();
                 try{
-                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*") || tempName.matches(".*\\.sig$")){
+                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*") || tempName.matches(".*\\.sig$") || tempName.matches(".*\\.key.server$")){
                         return false;}
                     else
                     {
@@ -300,27 +298,31 @@ public class DataManifest implements Serializable{
     }
 
 
-    public void CipherKey(SecretKey key, String fileName) {
+    public static void CipherKey(String fileName) {
         try {
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.ENCRYPT_MODE, key);
 
             // TODO Muda isto!
-            FileInputStream fileInputStream = new FileInputStream("Server.jks");
+            FileInputStream fileInputStream = new FileInputStream("servidor.jks");
             KeyStore keyStore = KeyStore.getInstance("JKS");
             keyStore.load(fileInputStream, "bolachas".toCharArray());
-            Certificate certificate = keyStore.getCertificate("dd");
+            Certificate certificate = keyStore.getCertificate("servidor");
 
             Cipher ckey = Cipher.getInstance("RSA");
             ckey.init(Cipher.WRAP_MODE, certificate);
 
-            byte[] cipheredKey = ckey.wrap(key);
+            FileInputStream fisKey = new FileInputStream(fileName);
+            ObjectInputStream oisKey = new ObjectInputStream(fisKey);
 
-            FileOutputStream kos = new FileOutputStream(fileName + ".key.server");
+            byte[] key = (byte[]) oisKey.readObject();
+
+            SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+            byte[] cipheredKey = ckey.wrap(keySpec);
+
+            FileOutputStream kos = new FileOutputStream(fileName + ".server");
             //ObjectOutputStream oos = new ObjectOutputStream(kos);
             kos.write(cipheredKey);
-
             kos.close();
+            new File(fileName).delete();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -360,7 +362,7 @@ public class DataManifest implements Serializable{
     }
 
 
-    public File decipherKey(String fileName) {
+    public static File decipherKey(String fileName) {
 
         try {
             File file = new File(fileName + ".key.server");
@@ -371,10 +373,10 @@ public class DataManifest implements Serializable{
             int i = kos.read(chaveCifrada);
 
             // TODO Muda isto
-            FileInputStream fileInputStream = new FileInputStream("Servidor.jks");
+            FileInputStream fileInputStream = new FileInputStream("servidor.jks");
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(fileInputStream, "123456".toCharArray());
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey("dd", "123456".toCharArray());
+            keyStore.load(fileInputStream, "bolachas".toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey("servidor", "bolachas".toCharArray());
 
             Cipher c = Cipher.getInstance("RSA");
             c.init(Cipher.UNWRAP_MODE, privateKey );
@@ -401,7 +403,7 @@ public class DataManifest implements Serializable{
         return new File(fileName + ".key");
     }
 
-    public File generateCipherKey(String fileName) throws NoSuchAlgorithmException, IOException {
+    public static File generateCipherKey(String fileName) throws NoSuchAlgorithmException, IOException {
         KeyGenerator kg = KeyGenerator.getInstance("AES");
         kg.init(128);
         SecretKey key = kg.generateKey();
@@ -410,7 +412,7 @@ public class DataManifest implements Serializable{
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         byte[] keyBytes = key.getEncoded();
 
-        oos.write(keyBytes);
+        oos.writeObject(keyBytes);
 
         oos.flush();
         oos.close();
@@ -420,7 +422,7 @@ public class DataManifest implements Serializable{
         return new File(fileName + ".key");
     }
 
-    public File cipherFile(File secretKeyFile, File fileToCipher) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
+    public static File cipherFile(File secretKeyFile, File fileToCipher) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
 
         FileInputStream fisKey;
         ObjectInputStream oisKey;
@@ -454,7 +456,7 @@ public class DataManifest implements Serializable{
         return new File(fileToCipher.getName()+".cif");
     }
 
-    public File decipherFile(File secretKeyFile, File fileToDecipher) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
+    public static File decipherFile(File secretKeyFile, File fileToDecipher, long date) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, ClassNotFoundException, InvalidKeyException {
 
         FileInputStream fis = new FileInputStream(secretKeyFile);
 
@@ -472,7 +474,7 @@ public class DataManifest implements Serializable{
         FileInputStream fis2;
         FileOutputStream fos;
         fis2 = new FileInputStream(fileToDecipher);
-        fos = new FileOutputStream(fileToDecipher.getName()+".temp");
+        fos = new FileOutputStream(fileToDecipher.getAbsoluteFile()+".temp");
         CipherInputStream cis = new CipherInputStream(fis2,c);
         byte[] b = new byte[16];
         int i = cis.read(b);
@@ -482,8 +484,12 @@ public class DataManifest implements Serializable{
         }
         fos.close();
         cis.close();
-
-        return new File(fileToDecipher.getName()+".temp");
+        String namefile=fileToDecipher.getName();
+        fileToDecipher.delete();
+        secretKeyFile.delete();
+        new File(fileToDecipher.getAbsolutePath()+".temp").renameTo(new File(fileToDecipher.getAbsolutePath()));
+        new File(fileToDecipher.getAbsolutePath()).setLastModified(date);
+        return null;
     }
 
 }
