@@ -19,9 +19,9 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+        //System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
         //mudar para o keystore de quem tiver a usar o programa
-        //System.setProperty("javax.net.ssl.trustStore", "myClient.jks");
+        System.setProperty("javax.net.ssl.trustStore", "Client.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
@@ -47,7 +47,6 @@ public class DataTransferUtils {
             System.err.println("Error: File not found. Abort.");
             System.exit(-1);
         }
-
         long    fileLength  = file.length();
         int     sendLength  = 1024;
         int     offset      = 0;
