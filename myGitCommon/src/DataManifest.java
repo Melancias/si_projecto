@@ -276,16 +276,16 @@ public class DataManifest implements Serializable{
                 return false;
     }
 
-    static void signatureCreator(String path){
+    static void generateSignature(String path){
         try {
             FileInputStream kfile = null;
             byte[] data= Files.readAllBytes(Paths.get(path));
-            kfile = new FileInputStream("finalkeystoreclient.jks");
+            kfile = new FileInputStream("cliente.jks");
             FileOutputStream fos = new FileOutputStream(path+".sig");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             KeyStore kstore = KeyStore.getInstance("JKS");
-            kstore.load(kfile, "batatas".toCharArray());
-            PrivateKey myPrivateKey=(PrivateKey) kstore.getKey("seginffcul cliente", "batatas".toCharArray());
+            kstore.load(kfile, "bolachas".toCharArray());
+            PrivateKey myPrivateKey=(PrivateKey) kstore.getKey("cliente", "bolachas".toCharArray());
             Signature s = Signature.getInstance("SHA256withRSA");
             s.initSign(myPrivateKey);
             s.update(data);
@@ -295,6 +295,12 @@ public class DataManifest implements Serializable{
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
+
+
+
+
 }
+

@@ -21,7 +21,7 @@ public class DataTransferUtils {
     public DataTransferUtils(String host,int port,String user) throws IOException {
         //System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
         //mudar para o keystore de quem tiver a usar o programa
-        System.setProperty("javax.net.ssl.trustStore", "Client.jks");
+        System.setProperty("javax.net.ssl.trustStore", "cliente.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
