@@ -106,8 +106,14 @@ public class myGit {
                     try{
                         for (String file : fileList){
                             System.out.println("Pushing: " + file);
-                            if(new File(repo).isFile()){util.pushFile(new File(repo));}
-                            else{util.pushFile(new File(repo+"/"+file));}
+                            if(new File(repo).isFile()){
+                                DataManifest.signatureCreator(new File(repo).getAbsolutePath());
+                                util.pushFile(new File(repo));
+                            }
+                            else{
+                                DataManifest.signatureCreator(new File(repo+"/"+file).getAbsolutePath());
+                                util.pushFile(new File(repo+"/"+file));
+                            }
 
                         }
                         int r = util.receiveAnswer();
@@ -116,6 +122,7 @@ public class myGit {
                         }else{
                             System.out.println("Error: Push failed");
                         }
+
                     }catch (Exception e){
                         System.out.println("Error: Could not push " + args[5]);
                     }

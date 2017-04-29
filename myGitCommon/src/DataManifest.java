@@ -1,9 +1,11 @@
 import javax.xml.crypto.Data;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.Signature;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -176,16 +178,6 @@ public class DataManifest implements Serializable{
             }
         }
 
-
-
-
-
-
-
-
-
-
-
         return files;
     }
 
@@ -282,6 +274,27 @@ public class DataManifest implements Serializable{
                 }
                 else{ System.out.println("File already up to date: " + file.getName()); return false;}
                 return false;
+    }
+
+    static void signatureCreator(String path){
+        try {
+            FileInputStream kfile = null;
+            byte[] data= Files.readAllBytes(Paths.get(path));
+            kfile = new FileInputStream("finalkeystoreclient.jks");
+            FileOutputStream fos = new FileOutputStream(path+".sig");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            KeyStore kstore = KeyStore.getInstance("JKS");
+            kstore.load(kfile, "batatas".toCharArray());
+            PrivateKey myPrivateKey=(PrivateKey) kstore.getKey("seginffcul cliente", "batatas".toCharArray());
+            Signature s = Signature.getInstance("SHA256withRSA");
+            s.initSign(myPrivateKey);
+            s.update(data);
+            oos.writeObject(data);
+            oos.writeObject(s.sign( ));
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
