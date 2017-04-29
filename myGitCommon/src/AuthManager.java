@@ -1,18 +1,17 @@
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
+
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.AlgorithmParameters;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-
 
 /**
  * Created by Melancias on 03/03/2017.
@@ -81,7 +80,23 @@ public class AuthManager {
         return resp;
     }
 
-    public boolean authenticate(String username, String password, String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException {
+    public boolean validatePassword(String nonce, String inputHashedPassword, String storedPassword ) throws NoSuchAlgorithmException, InvalidKeyException {
+
+        SecretKey key = new SecretKeySpec(nonce.getBytes(), "HmacSHA256");
+
+        Mac m;
+        byte[] passwordBytes = storedPassword.getBytes();
+
+        m = Mac.getInstance("HmacSHA256");
+        m.init(key);
+        m.update(passwordBytes);
+
+        String hashedStoredPassword = new String(m.doFinal());
+
+        return hashedStoredPassword.equals(inputHashedPassword);
+    }
+
+    public boolean authenticate(String username, String nonce, String password, String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchPaddingException {
         integrityCheck();
         try {
             BufferedReader authReader = readCipheredFile(authLineDecipher());
@@ -89,8 +104,9 @@ public class AuthManager {
             // Read each line until credentials match
             for (String line; (line = authReader.readLine()) != null; ) {
                 String[] credentials = line.split("\\:");
+
                 if (credentials[0].equals(username)) {
-                    if (credentials[1].equals(password)) {
+                    if (validatePassword(nonce, password, credentials[1])) {
                         return true;
                     } else {
                         return false;
@@ -98,8 +114,9 @@ public class AuthManager {
                 }
             }
             // In case credentials not found, register
-            if (action.equals("register"))
+            if (action.equals("register")){
                 return register(username, password);
+            }
 
         } catch (FileNotFoundException e) {
             try {
@@ -108,6 +125,7 @@ public class AuthManager {
                 e1.printStackTrace();
             }
             return register(username, password);
+            //return false;
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchPaddingException e) {
@@ -200,16 +218,10 @@ public class AuthManager {
         m.update(data);
         mac = m.doFinal();
 
-        System.out.println("Actual Hash:");
-        System.out.println(new String(HexBin.encode(mac)));
-
         FileInputStream fis = new FileInputStream(absolutePath + ".hash");
         ObjectInputStream ois = new ObjectInputStream(fis);
 
         byte[] dataHash = (byte[]) ois.readObject();
-
-        System.out.println("Saved Hash");
-        System.out.println(new String(HexBin.encode(dataHash)));
 
         return Arrays.equals(mac, dataHash);
     }
@@ -234,16 +246,10 @@ public class AuthManager {
         m.update(data);
         mac = m.doFinal();
 
-        System.out.println("Actual Hash:");
-        System.out.println(new String(HexBin.encode(mac)));
-
         FileInputStream fis = new FileInputStream(authFile.getAbsolutePath()+ ".hash");
         ObjectInputStream ois = new ObjectInputStream(fis);
 
         byte[] dataHash = (byte[]) ois.readObject();
-
-        System.out.println("Saved Hash");
-        System.out.println(new String(HexBin.encode(dataHash)));
 
         return Arrays.equals(mac, dataHash);}
         catch(Exception e){e.printStackTrace();}
@@ -324,6 +330,7 @@ public class AuthManager {
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
+
         Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
         c.init(Cipher.ENCRYPT_MODE, key);
         FileOutputStream kos = null;
@@ -343,6 +350,7 @@ public class AuthManager {
         Cipher c = getCipherFromPassword();
         FileOutputStream fos;
         CipherOutputStream cos;
+
         try {
             fos = new FileOutputStream(".authFile");
             cos = new CipherOutputStream(fos, c);
@@ -366,6 +374,7 @@ public class AuthManager {
 
     private void authCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException, IOException {
         byte[] pass = password.getBytes();
+
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
@@ -406,6 +415,7 @@ public class AuthManager {
 
     public byte[] authLineDecipher() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException, ClassNotFoundException {
         byte[] pass = password.getBytes();
+
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
         SecretKey key = kf.generateSecret(keySpec);
@@ -428,6 +438,7 @@ public class AuthManager {
             test.flush();
             j = decis.read(decifrado);
         }
+
         fis2.close();
         decis.close();
         return test.toByteArray();
@@ -444,7 +455,11 @@ public class AuthManager {
             e.printStackTrace();
         }
         return bfReader;
-        }
+    }
+
+    public static String generateNonce(){
+        return new BigInteger(130, new SecureRandom()).toString(32);
+    }
 
 
 }

@@ -32,11 +32,12 @@ class ServerThread extends Thread {
 
             System.out.println("entrou no run");
             String[] crends=util.getCredentials();
-            String user = crends[0];
-            String passwd = crends[1];
-            String action = crends[2];
+            String user   = crends[0];
+            String nonce  = crends[1];
+            String hashedPasswd = crends[2];
+            String action = crends[3];
             System.out.println("Connection established");
-            if (auth.authenticate(user,passwd,action)){
+            if (auth.authenticate(user, nonce, hashedPasswd, action)){
 
                 util.sendHandshake();
                 if(!util.clientRepoAccessCheck()){

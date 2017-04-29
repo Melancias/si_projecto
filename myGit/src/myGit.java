@@ -1,4 +1,8 @@
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -63,6 +67,7 @@ public class myGit {
                 System.out.println("Confirm password " + args[0] + ": ");
                 Scanner s = new Scanner(System.in);
                 String pwd = s.nextLine();
+
                 try{
                     if(pwd.equals(args[3])){
                         if(util.authClient(argumento, pwd,"register")) {

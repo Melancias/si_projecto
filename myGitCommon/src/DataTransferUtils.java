@@ -1,3 +1,6 @@
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
@@ -16,9 +19,9 @@ public class DataTransferUtils {
 
 
     public DataTransferUtils(String host,int port,String user) throws IOException {
-        //System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+        System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
         //mudar para o keystore de quem tiver a usar o programa
-        System.setProperty("javax.net.ssl.trustStore", "finalkeystoreclient.jks");
+        //System.setProperty("javax.net.ssl.trustStore", "myClient.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
@@ -44,6 +47,7 @@ public class DataTransferUtils {
             System.err.println("Error: File not found. Abort.");
             System.exit(-1);
         }
+
         long    fileLength  = file.length();
         int     sendLength  = 1024;
         int     offset      = 0;
@@ -139,9 +143,30 @@ public class DataTransferUtils {
 
     }
 
-    public Boolean authClient(String user, String pwd, String action) throws IOException {
+    public Boolean authClient(String user, String pwd, String action) throws Exception {
+
+        String nonce = AuthManager.generateNonce();
+
+        if (action == "login") {
+
+            SecretKey key = new SecretKeySpec(nonce.getBytes(), "HmacSHA256");
+
+            Mac m;
+            byte[] hashedPassword = null;
+            byte[] passwordBytes = pwd.getBytes();
+
+            m = Mac.getInstance("HmacSHA256");
+            m.init(key);
+            m.update(passwordBytes);
+            hashedPassword = m.doFinal();
+            nonce = new String(nonce);
+            pwd = new String(hashedPassword);
+
+        }
+
         try {
             outStream.writeObject(user);
+            outStream.writeObject(nonce);
             outStream.writeObject(pwd);
             outStream.writeObject(action);
             outStream.flush();
@@ -158,9 +183,10 @@ public class DataTransferUtils {
         try {
             System.out.println();
             String user = (String)inStream.readObject();
+            String nonce = (String)inStream.readObject();
             String passwd = (String)inStream.readObject();
             String action = (String)inStream.readObject();
-            credns=new String[]{user,passwd,action};
+            credns = new String[]{user, nonce, passwd,action};
         } catch (Exception e) {
             System.out.println("Error getting credentials");
         }
