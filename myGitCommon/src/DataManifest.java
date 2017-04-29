@@ -5,7 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -240,7 +242,7 @@ public class DataManifest implements Serializable{
             public boolean accept(File pathname) {
                 String tempName= pathname.getName();
                 try{
-                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*")){
+                    if(tempName.matches(".*\\.[1-2]$") || tempName.matches("^\\..*") || tempName.matches(".*\\.sig$")){
                         return false;}
                     else
                     {
@@ -276,7 +278,7 @@ public class DataManifest implements Serializable{
                 return false;
     }
 
-    static void generateSignature(String path){
+    static File generateSignature(String path){
         try {
             FileInputStream kfile = null;
             byte[] data= Files.readAllBytes(Paths.get(path));
@@ -289,14 +291,47 @@ public class DataManifest implements Serializable{
             Signature s = Signature.getInstance("SHA256withRSA");
             s.initSign(myPrivateKey);
             s.update(data);
-            oos.writeObject(data);
             oos.writeObject(s.sign( ));
             fos.close();
+            return new File(path+".sig");
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        return null;
     }
+
+    static boolean checkSignature(String path){
+        boolean answer=false;
+        try {
+            FileInputStream kfile = new FileInputStream("cliente.jks"); //keystore
+            KeyStore kstore = KeyStore.getInstance("JKS");
+            kstore.load(kfile, "bolachas".toCharArray()); //password
+            Certificate cert = kstore.getCertificate("cliente");
+            FileInputStream fis = new FileInputStream(path+".sig");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            byte[] data= Files.readAllBytes(Paths.get(path)); //não fiz verificação de erro
+            byte signature[] = (byte[]) ois.readObject(); //não fiz verificação de erro
+            Certificate c = cert; //obtém um certificado de alguma forma (ex., de um ficheiro)
+            PublicKey pk = c.getPublicKey();
+            Signature s = Signature.getInstance("SHA256withRSA");
+            s.initVerify(pk);
+            s.update(data);
+            answer=s.verify(signature);
+            if (answer)
+                System.out.println("Message is valid");
+            else
+                System.out.println("Message was corrupted");
+
+            fis.close();
+            new File(path+".sig").delete();
+            return answer;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 
 
 

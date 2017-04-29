@@ -71,7 +71,13 @@ public class DataTransferUtils {
 
             offset += sendLength;
         }
-        System.out.println(" - File Sent - ");
+        if (file.getName().contains(".sig")){
+            System.out.println(" - Signature Sent - ");
+        }
+        else {
+            System.out.println(" - File Sent - ");
+        }
+
 //        outStream.close();
 //        inStream.close();
 //        socket.close();
@@ -108,9 +114,10 @@ public class DataTransferUtils {
 
                 received += bytes;
                 file.setLastModified(lastModified);
-                fileOut.flush();
-                fileOut.close();
+
             }
+            fileOut.flush();
+            fileOut.close();
         }else if(userType=="servidor") {
             FileOutputStream fileOut = new FileOutputStream(file);
 
