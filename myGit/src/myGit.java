@@ -186,7 +186,7 @@ public class myGit {
                                 util.getRequest();
                                 util.pullFile(manifest.repo + ".key", "cliente");
                                 DataManifest.decipherFile(new File(manifest.repo + ".key"),new File(manifest.repo), date);
-                                if(!DataManifest.checkSignature(manifest.repo,finduser(manifest)));{
+                                if(!DataManifest.checkSignature(manifest.repo,finduser(manifest))){
                                     throw new Exception("File signature was corrupted");
                                 }
                             }

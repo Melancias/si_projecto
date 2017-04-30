@@ -280,7 +280,7 @@ public class DataManifest implements Serializable{
         try {
             FileInputStream kfile = null;
             byte[] data= Files.readAllBytes(Paths.get(path));
-            kfile = new FileInputStream("novo.jks");
+            kfile = new FileInputStream("cliente.jks");
             FileOutputStream fos = new FileOutputStream(path+".sig");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             KeyStore kstore = KeyStore.getInstance("JKS");
@@ -332,7 +332,7 @@ public class DataManifest implements Serializable{
     static boolean checkSignature(String path,String username){
         boolean answer=false;
         try {
-            FileInputStream kfile = new FileInputStream("novo.jks"); //keystore
+            FileInputStream kfile = new FileInputStream("cliente.jks"); //keystore
             KeyStore kstore = KeyStore.getInstance("JKS");
             kstore.load(kfile, "bolachas".toCharArray()); //password
             Certificate cert = kstore.getCertificate(username);
