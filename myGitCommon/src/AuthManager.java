@@ -204,32 +204,35 @@ public class AuthManager {
         return false;
     }
 
-    public static boolean integritySharedCheck(String absolutePath, String password) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException {
+    public static boolean integritySharedCheck(String absolutePath, String password) throws Exception {
+        try {
+            if (!new File(absolutePath).exists() && !new File(absolutePath + ".hash").exists())
+                return true;
 
-        if (!new File(absolutePath).exists() && !new File(absolutePath + ".hash").exists())
-            return true;
+            byte[] pass = password.getBytes();
+            SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
 
-        byte[] pass = password.getBytes();
-        SecretKey key = new SecretKeySpec(pass, "HmacSHA256");
+            Mac m;
+            byte[] mac = null;
 
-        Mac m;
-        byte[] mac = null;
+            m = Mac.getInstance("HmacSHA256");
+            m.init(key);
 
-        m = Mac.getInstance("HmacSHA256");
-        m.init(key);
+            //get file byte stream compare digests
+            Path path = Paths.get(absolutePath);
+            byte[] data = Files.readAllBytes(path);
+            m.update(data);
+            mac = m.doFinal();
 
-        //get file byte stream compare digests
-        Path path = Paths.get(absolutePath);
-        byte[] data = Files.readAllBytes(path);
-        m.update(data);
-        mac = m.doFinal();
+            FileInputStream fis = new FileInputStream(absolutePath + ".hash");
+            ObjectInputStream ois = new ObjectInputStream(fis);
 
-        FileInputStream fis = new FileInputStream(absolutePath + ".hash");
-        ObjectInputStream ois = new ObjectInputStream(fis);
+            byte[] dataHash = (byte[]) ois.readObject();
 
-        byte[] dataHash = (byte[]) ois.readObject();
-
-        return Arrays.equals(mac, dataHash);
+            return Arrays.equals(mac, dataHash);
+        }catch (Exception e){
+            throw new Exception("Failed checking integrity");
+        }
     }
 
     public boolean integrityCheck() throws AuthenticationException {

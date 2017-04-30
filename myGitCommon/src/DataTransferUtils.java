@@ -3,6 +3,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -22,11 +23,16 @@ public class DataTransferUtils {
         //mudar para o keystore de quem tiver a usar o programa
         System.setProperty("javax.net.ssl.trustStore", "cliente.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
-        socket= sf.createSocket(host,port);
-        this.user=user;
-        //noinspection Since15
-        outStream = new ObjectOutputStream(socket.getOutputStream());
-        inStream = new ObjectInputStream(socket.getInputStream());
+        try {
+            socket = sf.createSocket(host, port);
+            this.user = user;
+            //noinspection Since15
+            outStream = new ObjectOutputStream(socket.getOutputStream());
+            inStream = new ObjectInputStream(socket.getInputStream());
+        }
+        catch(ConnectException e){
+            throw new ConnectException("\nConnection refused: Host not found\nCheck your host:port paramaters");
+        }
     }
 
     public DataTransferUtils(Socket socket) throws IOException {
