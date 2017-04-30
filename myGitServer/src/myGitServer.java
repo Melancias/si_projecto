@@ -37,10 +37,10 @@ public class myGitServer {
      public void startServer (int port,String passwd){
 //     System.setProperty("javax.net.ssl.keyStore", "myServer.keyStore");
 //     System.setProperty("javax.net.ssl.keyStorePassword", "pedro123");
-     System.setProperty("javax.net.ssl.keyStore", "servidor.jks");
-     System.setProperty("javax.net.ssl.keyStorePassword", "bolachas");
-     ServerSocketFactory sf = SSLServerSocketFactory.getDefault( );
-         ServerSocket sSoc = null;
+        System.setProperty("javax.net.ssl.keyStore", "servidor.jks");
+        System.setProperty("javax.net.ssl.keyStorePassword", "bolachas");
+        ServerSocketFactory sf = SSLServerSocketFactory.getDefault( );
+        ServerSocket sSoc = null;
 
         try {
             sSoc = sf.createServerSocket(port);

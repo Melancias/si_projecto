@@ -1,5 +1,8 @@
 import java.io.*;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 /**
@@ -125,6 +128,8 @@ class ServerThread extends Thread {
                     }
 
 
+                } catch (InvalidKeyException e){
+                    System.err.println("Secret Key corrupted. Abort!");
                 } catch (ClassCastException e) {
 
                     String params = (String) request;
@@ -200,7 +205,7 @@ class ServerThread extends Thread {
 
         }
 
-        public void sendFileArrangerPull(DataTransferUtils util,DataManifest manifest,String filepath) throws IOException {
+        public void sendFileArrangerPull(DataTransferUtils util,DataManifest manifest,String filepath) throws IOException, KeyStoreException, NoSuchAlgorithmException {
             util.pushFile(new File(filepath));
             util.sendHandshake();
             util.pushFile(new File(filepath+".sig"));

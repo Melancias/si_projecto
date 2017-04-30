@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 /**
@@ -67,7 +68,7 @@ public class DataTransferUtils {
         return null;
     }
 
-    public static void CipherKey(String fileName) {
+    public static void CipherKey(String fileName) throws StreamCorruptedException {
         try {
 
             // TODO Muda isto!
@@ -91,6 +92,8 @@ public class DataTransferUtils {
             kos.write(cipheredKey);
             kos.close();
             new File(fileName).delete();
+        } catch (StreamCorruptedException e){
+            throw new StreamCorruptedException();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,15 +125,16 @@ public class DataTransferUtils {
             fis.close();
             new File(path+".sig").delete();
             return answer;
-        }
-        catch(Exception e){
+        } catch (StreamCorruptedException e){
+            System.err.println("Error: Signature corrupted.");
+        } catch(Exception e){
 
             e.printStackTrace();
         }
         return false;
     }
 
-    public static File decipherKey(String fileName) {
+    public static File decipherKey(String fileName) throws NoSuchAlgorithmException, KeyStoreException {
 
         try {
             File file = new File(fileName + ".key.server");
@@ -164,7 +168,15 @@ public class DataTransferUtils {
             kos.close();
 
 
-        } catch (Exception e) {
+        } catch (InvalidKeyException e){
+            System.err.println("Error: Key probably corrupted.");
+        } catch (IOException e) {
+            System.err.println("Error: File not found.");
+        } catch (CertificateException e) {
+            System.err.println("Error: Invalid certificate.");
+        } catch (UnrecoverableKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
             e.printStackTrace();
         }
 

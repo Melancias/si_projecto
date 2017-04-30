@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,11 +51,19 @@ public class myGit {
                 localUser = args[0];
             }
             catch(Exception e){
-                System.out.println("Error: Incorrect Host or Port");
+                System.err.println("Error: Incorrect Host or Port");
                 System.exit(-1);
             }
             DataTransferUtils util = null;
-            util = new DataTransferUtils(host, port, localUser);
+            try {
+                util = new DataTransferUtils(host, port, localUser);
+            } catch (javax.net.ssl.SSLException e) {
+                System.err.println("Error: Incorrect Certificate.");
+                System.exit(-1);
+            } catch (java.net.ConnectException e){
+                System.err.println("Error: Could not connect to server.");
+                System.exit(-1);
+            }
             boolean loginRegister=false;
 
             if(!util.accountCheck(args[0])){
@@ -75,7 +84,7 @@ public class myGit {
                         }
                     }
                     else{
-                        System.out.println("Error: Passwords don't match");
+                        System.err.println("Error: Passwords don't match");
                         System.exit(-1);
                     }
                 }catch(Exception e){
@@ -89,18 +98,18 @@ public class myGit {
                     boolean answer= !util.authClient(argumento, args[3], "login");
                     if (answer) {
                         // util.createUser(argumento, args[3]);
-                        System.out.println("Error: Authentication failed");
+                        System.err.println("Error: Authentication failed");
                         System.exit(-1);
                     }
                 }
                 if(!util.checkRepoAcess(repo,localUser,args[4])){
-                    System.out.println("Error: You don't have access to the repository");
+                    System.err.println("Error: You don't have access to the repository");
                     System.exit(-1);
                 }
                 if(args[4].equals("-push")){
                     Object answer=util.sendManifest(localUser,repo,"push",null);
                     if(answer==null){
-                        System.out.println("Error: Repository doesn't exist locally");
+                        System.err.println("Error: Repository doesn't exist locally");
                         System.exit(-1);
                     }
                     ArrayList<String> fileList = util.getFileList();
@@ -187,7 +196,8 @@ public class myGit {
                                 util.pullFile(manifest.repo + ".key", "cliente");
                                 DataTransferUtils.decipherFile(new File(manifest.repo + ".key"),new File(manifest.repo), date);
                                 if(!DataTransferUtils.checkSignature(manifest.repo,finduser(manifest))){
-                                    throw new Exception("File signature was corrupted");
+                                    System.err.println("File signature was corrupted");
+                                    throw new Exception();
                                 }
                             }
                         }
@@ -198,8 +208,11 @@ public class myGit {
                         }else{
                             System.out.println("Error: Pull failed");
                         }
+                    } catch(EOFException e){
+                        DataManifest.cleanup(repo);
+                        System.err.println("Error: Internal Server Error Occurred.");
                     }catch (Exception e){
-                        e.printStackTrace();
+                        //e.printStackTrace();
                         DataManifest.cleanup(repo);
                         System.out.println("Error: Pull failed");
 
