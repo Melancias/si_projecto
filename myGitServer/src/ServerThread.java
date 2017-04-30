@@ -93,7 +93,7 @@ class ServerThread extends Thread {
                         util.sendRequest(0);
                     } else if (manifest.action.equals("pull")) {
                         if (RepoManager.checkRepo(manifest.repo,manifest.user) && RepoManager.isBeingShared(manifest)){
-                            manifest=util.sendManifest(manifest.user,manifest.repo,"pull/server");
+                            manifest=util.sendManifest(manifest.user,manifest.repo,"pull/server",manifest.whohasit);
                             ArrayList<String> c=util.getFileList();
                             for (String s : c) {
                                 System.out.println("Sending files...");

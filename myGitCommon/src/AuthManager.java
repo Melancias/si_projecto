@@ -3,6 +3,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.naming.AuthenticationException;
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.channels.FileChannel;
@@ -96,8 +97,13 @@ public class AuthManager {
         return hashedStoredPassword.equals(inputHashedPassword);
     }
 
-    public boolean authenticate(String username, String nonce, String password, String action) throws NoSuchAlgorithmException, InvalidKeyException, IOException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchPaddingException {
-        integrityCheck();
+    public boolean authenticate(String username, String nonce, String password, String action) throws AuthenticationException {
+        try {
+            integrityCheck();
+        }
+        catch(AuthenticationException e){
+            throw new AuthenticationException("Integrity Check failed");
+        }
         try {
             BufferedReader authReader = readCipheredFile(authLineDecipher());
 
@@ -117,24 +123,24 @@ public class AuthManager {
             if (action.equals("register")){
                 return register(username, password);
             }
-
         } catch (FileNotFoundException e) {
             try {
                 createAuthFile();
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
-            return register(username, password);
+            try {
+                return register(username, password);
+            } catch (BadPaddingException e1) {
+                e1.printStackTrace();
+            } catch (IllegalBlockSizeException e1) {
+                e1.printStackTrace();
+            }
             //return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         return false;
 
@@ -226,7 +232,7 @@ public class AuthManager {
         return Arrays.equals(mac, dataHash);
     }
 
-    public boolean integrityCheck() {
+    public boolean integrityCheck() throws AuthenticationException {
         try{
         if (! authFile.exists() && !new File(authFile.getAbsolutePath() + ".hash").exists())
             return true;
@@ -252,8 +258,10 @@ public class AuthManager {
         byte[] dataHash = (byte[]) ois.readObject();
 
         return Arrays.equals(mac, dataHash);}
-        catch(Exception e){e.printStackTrace();}
-        return false;
+        catch(Exception e){
+            throw new AuthenticationException("Error deciphering the authentication file");
+        }
+
     }
 
     public static void integritySharedRewrite(String absolutePath, String password) {

@@ -45,11 +45,11 @@ public class myGitServer {
         try {
             sSoc = sf.createServerSocket(port);
             if(!AuthManager.getInstance(passwd).integrityCheck()){
-                System.out.println("Authentication file compromised or wrong password was used");
                 System.exit(-1);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
+            System.out.println("Authentication file compromised or wrong password was used");
             System.exit(-1);
         }
 

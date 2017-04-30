@@ -98,7 +98,7 @@ public class myGit {
                     System.exit(-1);
                 }
                 if(args[4].equals("-push")){
-                    Object answer=util.sendManifest(localUser,repo,"push");
+                    Object answer=util.sendManifest(localUser,repo,"push",null);
                     if(answer==null){
                         System.out.println("Error: Repository doesn't exist locally");
                         System.exit(-1);
@@ -108,7 +108,8 @@ public class myGit {
                         for (String file : fileList){
                             System.out.println("Pushing: " + file);
                             if(new File(repo).isFile()){
-                                File signature=DataManifest.generateSignature(new File(repo).getAbsolutePath());
+
+                                File signature=DataManifest.generateSignature(new File(repo).getAbsolutePath(),localUser);
                                 util.pushFile(signature);
                                 signature.delete();
                                 File cipheredKey=DataManifest.generateCipherKey(repo);
@@ -120,7 +121,7 @@ public class myGit {
 
                             }
                             else{
-                                File signature=DataManifest.generateSignature(new File(repo+"/"+file).getAbsolutePath());
+                                File signature=DataManifest.generateSignature(new File(repo+"/"+file).getAbsolutePath(),localUser);
                                 util.pushFile(signature);
                                 signature.delete();
                                 File cipheredKey=DataManifest.generateCipherKey(repo+"/"+file);
@@ -147,7 +148,7 @@ public class myGit {
 
                 }else if(args[4].equals("-pull")){
                     //enviar manifesto vazio
-                    util.sendManifest(localUser,repo,"pull");
+                    util.sendManifest(localUser,repo,"pull",null);
                     Object request = util.getRequest();
                     DataManifest manifest=null;
                     try{
@@ -171,8 +172,9 @@ public class myGit {
                                 util.pullFile(manifest.repo + "/" + file+".sig", "cliente");
                                 util.getRequest();
                                 util.pullFile(manifest.repo + "/" + file+".key", "cliente");
+
                                 DataManifest.decipherFile(new File(manifest.repo + "/" + file+".key"),new File(manifest.repo + "/" + file),date);
-                                if(!DataManifest.checkSignature(manifest.repo + "/" + file)){
+                                if(!DataManifest.checkSignature(manifest.repo + "/" + file,finduser(manifest))){
                                     throw new Exception("File signature was corrupted");
 
                                 };
@@ -184,7 +186,7 @@ public class myGit {
                                 util.getRequest();
                                 util.pullFile(manifest.repo + ".key", "cliente");
                                 DataManifest.decipherFile(new File(manifest.repo + ".key"),new File(manifest.repo), date);
-                                if(!DataManifest.checkSignature(manifest.repo));{
+                                if(!DataManifest.checkSignature(manifest.repo,finduser(manifest)));{
                                     throw new Exception("File signature was corrupted");
                                 }
                             }
@@ -198,7 +200,9 @@ public class myGit {
                         }
                     }catch (Exception e){
                         e.printStackTrace();
+                        DataManifest.cleanup(repo);
                         System.out.println("Error: Pull failed");
+
                     }
 
                 }else if(args[4].equals("-share")){
@@ -258,6 +262,21 @@ public class myGit {
         if (argsVerification.get(0).split("/").length>1  && !argsVerification.contains("-init")) {
             System.out.println("Username cannot have backslash on it");
             answer = true;
+        }
+        return answer;
+    }
+
+    private static String finduser(DataManifest manifest){
+        String answer="";
+        switch(manifest.whohasit){
+            case LOCAL: answer=manifest.user;
+                break;
+            case REMOTE: answer=manifest.repo.split("/")[0];
+                break;
+            case REMOTEFILE:answer=manifest.repo.split("/")[0];
+                break;
+            case LOCALFILE: answer=manifest.user;
+                break;
         }
         return answer;
     }

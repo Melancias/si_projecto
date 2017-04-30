@@ -20,7 +20,7 @@ public class DataTransferUtils {
     public DataTransferUtils(String host,int port,String user) throws IOException {
         //System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
         //mudar para o keystore de quem tiver a usar o programa
-        System.setProperty("javax.net.ssl.trustStore", "cliente.jks");
+        System.setProperty("javax.net.ssl.trustStore", "novo.jks");
         SocketFactory sf = SSLSocketFactory.getDefault();
         socket= sf.createSocket(host,port);
         this.user=user;
@@ -96,6 +96,8 @@ public class DataTransferUtils {
         long fileLength = (Long) inStream.readObject();
         long lastModified = (Long) inStream.readObject();
         if(userType=="cliente"){
+            if (new File(path).exists());
+                new File(path).renameTo(new File(path+".old"));
             FileOutputStream fileOut = new FileOutputStream(file, false);
 
             while(received < fileLength){
@@ -199,9 +201,10 @@ public class DataTransferUtils {
     };
 
 
-    public DataManifest sendManifest(String user, String repo, String action) throws Exception {
+    public DataManifest sendManifest(String user, String repo, String action,RepoPathTypeEnum type) throws Exception {
         if (action.equals("push") || action.equals("pull/server")) {
             DataManifest d = new DataManifest(user, repo, action);
+            d.whohasit=type;
             repo = "./" + repo;
             if (new File(repo).isFile()) {
                 d.addFileManifestManual(repo);

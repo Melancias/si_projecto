@@ -12,6 +12,7 @@ public class RepoManager {
         String shareFileLocation = null;
         String[] caseTest= repoPath.split("/");
         RepoPathTypeEnum type=repoType(data);
+        data.whohasit=type;
         switch(type){
             case LOCAL: shareFileLocation = username+"/"+repoPath;
                         break;
@@ -240,7 +241,7 @@ public class RepoManager {
 
     static RepoPathTypeEnum repoType(DataManifest data){
         RepoPathTypeEnum result=RepoPathTypeEnum.UNKNOWN;
-        if (!checkRepo(data.user,data.repo)){
+        if (!checkRepo(data.repo,data.user)){
             return result;
         }
         String repoPath=data.repo;
@@ -264,4 +265,5 @@ public class RepoManager {
         return result;
 
      };
+
 }
