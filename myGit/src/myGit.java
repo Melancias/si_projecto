@@ -109,11 +109,11 @@ public class myGit {
                             System.out.println("Pushing: " + file);
                             if(new File(repo).isFile()){
 
-                                File signature=DataManifest.generateSignature(new File(repo).getAbsolutePath(),localUser);
+                                File signature= DataTransferUtils.generateSignature(new File(repo).getAbsolutePath(),localUser);
                                 util.pushFile(signature);
                                 signature.delete();
-                                File cipheredKey=DataManifest.generateCipherKey(repo);
-                                File cipheredFile=DataManifest.cipherFile(cipheredKey,new File(repo));
+                                File cipheredKey= DataTransferUtils.generateCipherKey(repo);
+                                File cipheredFile= DataTransferUtils.cipherFile(cipheredKey,new File(repo));
                                 util.pushFile(cipheredKey);
                                 util.pushFile(cipheredFile);
                                 cipheredFile.delete();
@@ -121,11 +121,11 @@ public class myGit {
 
                             }
                             else{
-                                File signature=DataManifest.generateSignature(new File(repo+"/"+file).getAbsolutePath(),localUser);
+                                File signature= DataTransferUtils.generateSignature(new File(repo+"/"+file).getAbsolutePath(),localUser);
                                 util.pushFile(signature);
                                 signature.delete();
-                                File cipheredKey=DataManifest.generateCipherKey(repo+"/"+file);
-                                File cipheredFile=DataManifest.cipherFile(cipheredKey,new File(repo+"/"+file));
+                                File cipheredKey= DataTransferUtils.generateCipherKey(repo+"/"+file);
+                                File cipheredFile= DataTransferUtils.cipherFile(cipheredKey,new File(repo+"/"+file));
                                 util.pushFile(cipheredKey);
                                 util.pushFile(cipheredFile);
                                 cipheredFile.delete();
@@ -173,8 +173,8 @@ public class myGit {
                                 util.getRequest();
                                 util.pullFile(manifest.repo + "/" + file+".key", "cliente");
 
-                                DataManifest.decipherFile(new File(manifest.repo + "/" + file+".key"),new File(manifest.repo + "/" + file),date);
-                                if(!DataManifest.checkSignature(manifest.repo + "/" + file,finduser(manifest))){
+                                DataTransferUtils.decipherFile(new File(manifest.repo + "/" + file+".key"),new File(manifest.repo + "/" + file),date);
+                                if(!DataTransferUtils.checkSignature(manifest.repo + "/" + file,finduser(manifest))){
                                     throw new Exception("File signature was corrupted");
 
                                 };
@@ -185,8 +185,8 @@ public class myGit {
                                 util.pullFile(manifest.repo+".sig", "cliente");
                                 util.getRequest();
                                 util.pullFile(manifest.repo + ".key", "cliente");
-                                DataManifest.decipherFile(new File(manifest.repo + ".key"),new File(manifest.repo), date);
-                                if(!DataManifest.checkSignature(manifest.repo,finduser(manifest))){
+                                DataTransferUtils.decipherFile(new File(manifest.repo + ".key"),new File(manifest.repo), date);
+                                if(!DataTransferUtils.checkSignature(manifest.repo,finduser(manifest))){
                                     throw new Exception("File signature was corrupted");
                                 }
                             }

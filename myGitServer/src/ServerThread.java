@@ -1,7 +1,4 @@
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -194,7 +191,7 @@ class ServerThread extends Thread {
                 util.pullFile(filepath+".sig", "servidor");
                 util.pullFile(filepath+".key", "servidor");
                 util.pullFile(filepath, "servidor");
-                DataManifest.CipherKey(filepath+".key");
+                DataTransferUtils.CipherKey(filepath+".key");
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
@@ -207,7 +204,7 @@ class ServerThread extends Thread {
             util.pushFile(new File(filepath));
             util.sendHandshake();
             util.pushFile(new File(filepath+".sig"));
-            File decipheredKey=DataManifest.decipherKey(filepath);
+            File decipheredKey= DataTransferUtils.decipherKey(filepath);
             util.sendHandshake();
             util.pushFile(decipheredKey);
             decipheredKey.delete();
