@@ -141,13 +141,13 @@ public class DataManifest implements Serializable{
                         e.printStackTrace();
                     }
                 }
-                else if (file.isFile() & file.lastModified() > dataManifest.getModifiedData(file.getName())) {
+                else if (file.isFile() & file.lastModified() < dataManifest.getModifiedData(file.getName())) {
                     files.add(file.getName());
                     for (File f : new File[]{file,new File(file.getAbsolutePath()+".sig"),new File(file.getAbsolutePath()+".key.server")}) {
                         RepoManager.manageVersions(file);
                     }
                     System.out.println("File modified: " + file.getName());
-                } else if (file.isFile() & file.lastModified() < dataManifest.getModifiedData(file.getName())){
+                } else if (file.isFile() & file.lastModified() > dataManifest.getModifiedData(file.getName())){
                     System.out.println("Outdated local repository: Pull first do update");
 //                    break;
                 }
